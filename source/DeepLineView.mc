@@ -557,8 +557,16 @@ class DeepLineView extends WatchUi.View {
         var gentleDescent = headDown && cue != DiveConstants.CUE_EQUALIZE &&
             cue != DiveConstants.CUE_TAG &&
             _model.getState() != DiveConstants.STATE_TURNING;
-        var frameIndex = (_animationTick / 2) % 4;
-        if (gentleDescent) {
+        var frameIndex = 0;
+        if (_model.getState() == DiveConstants.STATE_TURNING) {
+            if (cue == DiveConstants.CUE_TAG) {
+                frameIndex = 0;
+            } else if (_model.getCueAge() <= 2) {
+                frameIndex = 1;
+            } else {
+                frameIndex = 2;
+            }
+        } else if (gentleDescent) {
             // Half-speed fin movement with the neutral pose held between kicks.
             var descentPhase = (_animationTick / 4) % 6;
             frameIndex = 1;
@@ -566,8 +574,11 @@ class DeepLineView extends WatchUi.View {
             if (descentPhase == 4) { frameIndex = 2; }
         } else if (frames.size() == 2) {
             frameIndex = (_animationTick / 3) % 2;
-        } else if (frameIndex == 3) {
-            frameIndex = 1;
+        } else {
+            frameIndex = (_animationTick / 2) % 4;
+            if (frameIndex == 3) {
+                frameIndex = 1;
+            }
         }
 
         var bobPhase = (_animationTick / 3) % 4;

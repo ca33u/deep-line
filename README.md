@@ -14,7 +14,7 @@ Deep Line is an arcade game. It is not a breath-hold trainer, dive computer or s
 
 ## Visual system
 
-The game uses short illustrated animation loops for the surface start, duck dive, descent, ascent, equalization and bottom turn, plus dedicated buoy, tag and depth-linked wildlife assets. A forage-fish school, green turtle and distant orca move behind the line at plausible points in the upper 20 m, each with a subtle two-frame swim cycle. Compact frames are loaded on 280 px MIP watches and larger frames on 390 px AMOLED watches.
+The game uses short illustrated animation loops for the surface start, duck dive, descent, ascent, equalization and bottom turn, plus dedicated buoy, tag and depth-linked wildlife assets. The bottom turn follows the interaction phases instead of looping independently: reach for the tag, pivot, then settle head-up. A forage-fish school, green turtle and distant orca move behind the line at plausible points in the upper 20 m, each with a subtle two-frame swim cycle. Compact frames are loaded on 280 px MIP watches and larger frames on 390 px AMOLED watches.
 
 Water uses a ten-step animated gradient on AMOLED and a palette-safe stepped teal gradient on 64-color MIP. Moving rays, drifting particles, surface waves, buoy bob, tag sway, line markers, timing rings and HUD elements stay code-drawn to keep memory and redraw cost predictable.
 
