@@ -625,10 +625,6 @@ class DeepLineView extends WatchUi.View {
         dc.drawLine(width * 85 / 100, height * 46 / 100,
             width * 80 / 100, height * 49 / 100);
 
-        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, height * 73 / 100, Graphics.FONT_XTINY,
-            (level + 1).format("%d") + " / " + Campaign.LEVEL_COUNT.format("%d"),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         var actionLabel = _model.isSelectedUnlocked() ? "DIVE" : "LOCKED";
         var actionColor = _model.isSelectedUnlocked() ? COLOR_ACCENT : COLOR_DIM;
         drawPrimaryButton(dc, cx, height * 85 / 100, actionLabel, actionColor);
