@@ -8,6 +8,12 @@ The two source sheets in this directory were generated for Deep Line with OpenAI
 
 The production PNGs under `resources/drawables/generated/` are cropped and downscaled from these sheets. They have separate compact MIP and larger AMOLED variants so the game does not scale large bitmaps at runtime.
 
+The `DEEP LINE` menu wordmark is generated locally by
+`scripts/build-title-assets.swift` with DIN Condensed Bold. It uses cream for
+`DEEP`, rope-gold for `LINE`, and a subtle navy edge/shadow for legibility over
+the animated ocean. The exact typography is reproducible and does not depend on
+Garmin's limited runtime font set.
+
 Runtime animation uses three descent frames, three ascent frames, two equalization frames and three turn frames. `scripts/build-art-assets.sh` rebuilds both density sets from the source strips. Only the density for the current display is loaded into memory.
 
 ## Art direction

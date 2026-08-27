@@ -50,6 +50,8 @@ class DeepLineView extends WatchUi.View {
     private var _loadedAmoled as Lang.Boolean = false;
     private var _buoyMip as WatchUi.BitmapResource;
     private var _buoyAmoled as WatchUi.BitmapResource;
+    private var _titleMip as WatchUi.BitmapResource;
+    private var _titleAmoled as WatchUi.BitmapResource;
     private var _tagMip as WatchUi.BitmapResource;
     private var _tagAmoled as WatchUi.BitmapResource;
     private var _fishMip as WatchUi.BitmapResource;
@@ -71,6 +73,8 @@ class DeepLineView extends WatchUi.View {
         _timer = new Timer.Timer();
         _buoyMip = WatchUi.loadResource($.Rez.Drawables.BuoyMip) as WatchUi.BitmapResource;
         _buoyAmoled = WatchUi.loadResource($.Rez.Drawables.BuoyAmoled) as WatchUi.BitmapResource;
+        _titleMip = WatchUi.loadResource($.Rez.Drawables.DeepLineTitleMip) as WatchUi.BitmapResource;
+        _titleAmoled = WatchUi.loadResource($.Rez.Drawables.DeepLineTitleAmoled) as WatchUi.BitmapResource;
         _tagMip = WatchUi.loadResource($.Rez.Drawables.TagMip) as WatchUi.BitmapResource;
         _tagAmoled = WatchUi.loadResource($.Rez.Drawables.TagAmoled) as WatchUi.BitmapResource;
         _fishMip = WatchUi.loadResource($.Rez.Drawables.FishSchoolMip) as WatchUi.BitmapResource;
@@ -342,15 +346,16 @@ class DeepLineView extends WatchUi.View {
         dc.setColor(COLOR_LINE, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(1));
         dc.drawLine(cx, height * 23 / 100, cx, height * 77 / 100);
-        dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, height * 36 / 100, Graphics.FONT_MEDIUM, "DEEP LINE",
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        var title = isAmoled() ? _titleAmoled : _titleMip;
+        dc.drawBitmap(cx - (title.getWidth() / 2),
+            height * 40 / 100 - (title.getHeight() / 2), title);
         dc.setColor(COLOR_FOAM, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, height * 47 / 100, Graphics.FONT_XTINY, "ONE BREATH · ONE LINE",
+        dc.drawText(cx, height * 52 / 100, Graphics.FONT_XTINY,
+            "One breath. One line.",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         drawDuckFrame(dc, 0, cx - scaled(58), height * 22 / 100 + scaled(7));
-        drawActionPill(dc, cx, height * 88 / 100, "TAP / START", COLOR_ACCENT);
+        drawMenuActionPill(dc, cx, height * 86 / 100);
     }
 
     private function drawDive(dc as Graphics.Dc) as Void {
@@ -788,6 +793,16 @@ class DeepLineView extends WatchUi.View {
         drawPillBackground(dc, cx, cy, width, scaled(22), COLOR_ABYSS);
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
         dc.drawText(cx, cy, Graphics.FONT_XTINY, label,
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    private function drawMenuActionPill(dc as Graphics.Dc, cx as Lang.Number,
+            cy as Lang.Number) as Void {
+        var width = _screenWidth * 48 / 100;
+        var height = scaled(30);
+        drawPillBackground(dc, cx, cy, width, height, COLOR_ABYSS);
+        dc.setColor(COLOR_ACCENT, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, cy, Graphics.FONT_SMALL, "START",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

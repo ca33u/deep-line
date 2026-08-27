@@ -6,6 +6,10 @@ cd "$(dirname "$0")/.."
 out_dir="resources/drawables/generated"
 mkdir -p "$out_dir"
 
+SWIFT_MODULECACHE_PATH=/tmp/deep-line-swift-cache \
+CLANG_MODULE_CACHE_PATH=/tmp/deep-line-clang-cache \
+swift scripts/build-title-assets.swift
+
 render_frame() {
     input="$1"
     crop="$2"
