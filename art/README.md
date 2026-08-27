@@ -9,10 +9,14 @@ OpenAI's built-in image generation on 2026-08-27.
 - `dive-props-sheet.png`: the editable master for the buoy and tag plate.
 - `fish-school*.png`, `green-turtle*.png`, and `orca*.png`: paired depth-life
   frames. The second orca frame carries the raised-tail phase of its tail beat.
-- `sea-lion.png`, `thresher-shark.png`, `manta-ray.png`,
-  `hammerhead-shark.png`, and `swimming-penguin.png`: territory-specific wildlife
-  silhouettes for Mexico, the Philippines, the Red Sea, the Bahamas, and
-  Antarctica. These use whole-body drift and subtle bobbing at runtime.
+- `sea-lion*.png`, `thresher-shark*.png`, `manta-ray*.png`,
+  `hammerhead-shark*.png`, and `swimming-penguin*.png`: paired territory-specific
+  wildlife frames for Mexico, the Philippines, the Red Sea, the Bahamas, and
+  Antarctica. Each pair adds a restrained species-specific stroke on top of
+  whole-body drift and subtle bobbing.
+- `leopard-seal-floe.png`: a leopard seal resting on Antarctic pack ice for the
+  middle Antarctica level. Polar bears were deliberately not used because they
+  are Arctic animals.
 
 The obsolete all-in-one `freediver-sprite-sheet.png` was removed after the
 separate animation strips fully replaced it.

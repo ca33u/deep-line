@@ -62,3 +62,29 @@ The accepted manta then received a background-only extraction pass because its
 first output contained a baked checkerboard. Both replacement sources are RGBA
 and were checked again at their actual runtime sizes (`80x54` / `112x76` for the
 manta and `90x48` / `126x68` for the hammerhead).
+
+## Second animation frames
+
+Each accepted source was used as a high-invariance `precise-object-edit` target.
+The prompt locked identity, orientation, colors, markings, proportions, fin or
+limb count, and transparent canvas, then requested exactly one small motion:
+
+- sea lion: fore flippers sweep back and the torso takes a slight S-curve;
+- thresher shark: caudal peduncle and long upper tail lobe flex oppositely;
+- manta: both pectoral wing tips move into a gentle downstroke;
+- hammerhead: rear torso and heterocercal tail flex oppositely while the entire
+  cephalofoil remains locked;
+- Adélie penguin: both flipper-wings lift slightly and the feet flex down.
+
+All five generated edits received a background-only extraction pass. Accepted
+second frames use the `-1.png` suffix and keep the same runtime dimensions as
+their matching first frame.
+
+## Antarctic ice resident
+
+`leopard-seal-floe.png` was generated in `stylized-concept` mode from the sea
+lion only as a style reference: one anatomically plausible adult leopard seal,
+calmly resting on one compact Antarctic pack-ice floe, with a slender spotted
+body, large head, long fore flippers, joined hind flippers, and true alpha.
+The asset replaces the requested polar bear because polar bears live in the
+Arctic, while leopard seals inhabit pack ice around Antarctica.

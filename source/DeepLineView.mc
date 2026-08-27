@@ -41,6 +41,7 @@ class DeepLineView extends WatchUi.View {
     private var _feedbackEvent as Lang.Number = DiveConstants.EVENT_NONE;
     private var _feedbackTicks as Lang.Number = 0;
     private var _animationTick as Lang.Number = 0;
+    private var _iceTransitionTicks as Lang.Number = 0;
     private var _descentFrames as Lang.Array<WatchUi.BitmapResource> = [];
     private var _ascentFrames as Lang.Array<WatchUi.BitmapResource> = [];
     private var _equalizeFrames as Lang.Array<WatchUi.BitmapResource> = [];
@@ -68,14 +69,26 @@ class DeepLineView extends WatchUi.View {
     private var _orca1Amoled as WatchUi.BitmapResource;
     private var _seaLionMip as WatchUi.BitmapResource;
     private var _seaLionAmoled as WatchUi.BitmapResource;
+    private var _seaLion1Mip as WatchUi.BitmapResource;
+    private var _seaLion1Amoled as WatchUi.BitmapResource;
     private var _thresherMip as WatchUi.BitmapResource;
     private var _thresherAmoled as WatchUi.BitmapResource;
+    private var _thresher1Mip as WatchUi.BitmapResource;
+    private var _thresher1Amoled as WatchUi.BitmapResource;
     private var _mantaMip as WatchUi.BitmapResource;
     private var _mantaAmoled as WatchUi.BitmapResource;
+    private var _manta1Mip as WatchUi.BitmapResource;
+    private var _manta1Amoled as WatchUi.BitmapResource;
     private var _hammerheadMip as WatchUi.BitmapResource;
     private var _hammerheadAmoled as WatchUi.BitmapResource;
+    private var _hammerhead1Mip as WatchUi.BitmapResource;
+    private var _hammerhead1Amoled as WatchUi.BitmapResource;
     private var _penguinMip as WatchUi.BitmapResource;
     private var _penguinAmoled as WatchUi.BitmapResource;
+    private var _penguin1Mip as WatchUi.BitmapResource;
+    private var _penguin1Amoled as WatchUi.BitmapResource;
+    private var _leopardSealFloeMip as WatchUi.BitmapResource;
+    private var _leopardSealFloeAmoled as WatchUi.BitmapResource;
 
     function initialize() {
         View.initialize();
@@ -101,14 +114,26 @@ class DeepLineView extends WatchUi.View {
         _orca1Amoled = WatchUi.loadResource($.Rez.Drawables.Orca1Amoled) as WatchUi.BitmapResource;
         _seaLionMip = WatchUi.loadResource($.Rez.Drawables.SeaLionMip) as WatchUi.BitmapResource;
         _seaLionAmoled = WatchUi.loadResource($.Rez.Drawables.SeaLionAmoled) as WatchUi.BitmapResource;
+        _seaLion1Mip = WatchUi.loadResource($.Rez.Drawables.SeaLion1Mip) as WatchUi.BitmapResource;
+        _seaLion1Amoled = WatchUi.loadResource($.Rez.Drawables.SeaLion1Amoled) as WatchUi.BitmapResource;
         _thresherMip = WatchUi.loadResource($.Rez.Drawables.ThresherSharkMip) as WatchUi.BitmapResource;
         _thresherAmoled = WatchUi.loadResource($.Rez.Drawables.ThresherSharkAmoled) as WatchUi.BitmapResource;
+        _thresher1Mip = WatchUi.loadResource($.Rez.Drawables.ThresherShark1Mip) as WatchUi.BitmapResource;
+        _thresher1Amoled = WatchUi.loadResource($.Rez.Drawables.ThresherShark1Amoled) as WatchUi.BitmapResource;
         _mantaMip = WatchUi.loadResource($.Rez.Drawables.MantaRayMip) as WatchUi.BitmapResource;
         _mantaAmoled = WatchUi.loadResource($.Rez.Drawables.MantaRayAmoled) as WatchUi.BitmapResource;
+        _manta1Mip = WatchUi.loadResource($.Rez.Drawables.MantaRay1Mip) as WatchUi.BitmapResource;
+        _manta1Amoled = WatchUi.loadResource($.Rez.Drawables.MantaRay1Amoled) as WatchUi.BitmapResource;
         _hammerheadMip = WatchUi.loadResource($.Rez.Drawables.HammerheadSharkMip) as WatchUi.BitmapResource;
         _hammerheadAmoled = WatchUi.loadResource($.Rez.Drawables.HammerheadSharkAmoled) as WatchUi.BitmapResource;
+        _hammerhead1Mip = WatchUi.loadResource($.Rez.Drawables.HammerheadShark1Mip) as WatchUi.BitmapResource;
+        _hammerhead1Amoled = WatchUi.loadResource($.Rez.Drawables.HammerheadShark1Amoled) as WatchUi.BitmapResource;
         _penguinMip = WatchUi.loadResource($.Rez.Drawables.SwimmingPenguinMip) as WatchUi.BitmapResource;
         _penguinAmoled = WatchUi.loadResource($.Rez.Drawables.SwimmingPenguinAmoled) as WatchUi.BitmapResource;
+        _penguin1Mip = WatchUi.loadResource($.Rez.Drawables.SwimmingPenguin1Mip) as WatchUi.BitmapResource;
+        _penguin1Amoled = WatchUi.loadResource($.Rez.Drawables.SwimmingPenguin1Amoled) as WatchUi.BitmapResource;
+        _leopardSealFloeMip = WatchUi.loadResource($.Rez.Drawables.LeopardSealFloeMip) as WatchUi.BitmapResource;
+        _leopardSealFloeAmoled = WatchUi.loadResource($.Rez.Drawables.LeopardSealFloeAmoled) as WatchUi.BitmapResource;
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
@@ -140,6 +165,7 @@ class DeepLineView extends WatchUi.View {
 
     function openCampaign() as Void {
         _model.openCampaign();
+        _iceTransitionTicks = _model.getTerritory() == 4 ? 8 : 0;
         WatchUi.requestUpdate();
     }
 
@@ -150,6 +176,7 @@ class DeepLineView extends WatchUi.View {
 
     function changeLevel(delta as Lang.Number) as Void {
         _model.moveSelection(delta);
+        _iceTransitionTicks = _model.getTerritory() == 4 ? 8 : 0;
         WatchUi.requestUpdate();
     }
 
@@ -244,6 +271,9 @@ class DeepLineView extends WatchUi.View {
 
     function onTimer() as Void {
         _animationTick = (_animationTick + 1) % 24;
+        if (_iceTransitionTicks > 0) {
+            _iceTransitionTicks -= 1;
+        }
         if (_feedbackTicks > 0) {
             _feedbackTicks -= 1;
             if (_feedbackTicks == 0) {
@@ -593,15 +623,26 @@ class DeepLineView extends WatchUi.View {
 
     private function drawTerritoryPreview(dc as Graphics.Dc,
             territory as Lang.Number, x as Lang.Number, y as Lang.Number) as Void {
-        var animal = isAmoled() ? _seaLionAmoled : _seaLionMip;
+        var alternate = ((_animationTick / 6) % 2) == 1;
+        var animal = isAmoled() ?
+            (alternate ? _seaLion1Amoled : _seaLionAmoled) :
+            (alternate ? _seaLion1Mip : _seaLionMip);
         if (territory == 1) {
-            animal = isAmoled() ? _thresherAmoled : _thresherMip;
+            animal = isAmoled() ?
+                (alternate ? _thresher1Amoled : _thresherAmoled) :
+                (alternate ? _thresher1Mip : _thresherMip);
         } else if (territory == 2) {
-            animal = isAmoled() ? _mantaAmoled : _mantaMip;
+            animal = isAmoled() ?
+                (alternate ? _manta1Amoled : _mantaAmoled) :
+                (alternate ? _manta1Mip : _mantaMip);
         } else if (territory == 3) {
-            animal = isAmoled() ? _hammerheadAmoled : _hammerheadMip;
+            animal = isAmoled() ?
+                (alternate ? _hammerhead1Amoled : _hammerheadAmoled) :
+                (alternate ? _hammerhead1Mip : _hammerheadMip);
         } else if (territory == 4) {
-            animal = isAmoled() ? _penguinAmoled : _penguinMip;
+            animal = isAmoled() ?
+                (alternate ? _penguin1Amoled : _penguinAmoled) :
+                (alternate ? _penguin1Mip : _penguinMip);
         }
         var bob = ((_animationTick / 6) % 3) - 1;
         dc.drawBitmap(x - (animal.getWidth() / 2),
@@ -727,12 +768,36 @@ class DeepLineView extends WatchUi.View {
             (orcaAlt ? _orca1Amoled : _orcaAmoled) :
             (orcaAlt ? _orca1Mip : _orcaMip);
 
+        var seaLionAlt = ((_animationTick / 5) % 2) == 1;
+        var seaLion = isAmoled() ?
+            (seaLionAlt ? _seaLion1Amoled : _seaLionAmoled) :
+            (seaLionAlt ? _seaLion1Mip : _seaLionMip);
+
+        var thresherAlt = ((_animationTick / 7) % 2) == 1;
+        var thresher = isAmoled() ?
+            (thresherAlt ? _thresher1Amoled : _thresherAmoled) :
+            (thresherAlt ? _thresher1Mip : _thresherMip);
+
+        var mantaAlt = ((_animationTick / 8) % 2) == 1;
+        var manta = isAmoled() ?
+            (mantaAlt ? _manta1Amoled : _mantaAmoled) :
+            (mantaAlt ? _manta1Mip : _mantaMip);
+
+        var hammerheadAlt = ((_animationTick / 6) % 2) == 1;
+        var hammerhead = isAmoled() ?
+            (hammerheadAlt ? _hammerhead1Amoled : _hammerheadAmoled) :
+            (hammerheadAlt ? _hammerhead1Mip : _hammerheadMip);
+
+        var penguinAlt = ((_animationTick / 4) % 2) == 1;
+        var penguin = isAmoled() ?
+            (penguinAlt ? _penguin1Amoled : _penguinAmoled) :
+            (penguinAlt ? _penguin1Mip : _penguinMip);
+
         if (territory == 0) {
             drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
                 target * 24 / 100, span, true, 4);
             drawEncounter(dc, turtle, cy, pixelsPerTenMeters, depth,
                 target * 52 / 100, span, false, 8);
-            var seaLion = isAmoled() ? _seaLionAmoled : _seaLionMip;
             drawEncounter(dc, seaLion, cy, pixelsPerTenMeters, depth,
                 target * 80 / 100, span, true, 5);
         } else if (territory == 1) {
@@ -740,13 +805,11 @@ class DeepLineView extends WatchUi.View {
                 target * 24 / 100, span, true, 4);
             drawEncounter(dc, turtle, cy, pixelsPerTenMeters, depth,
                 target * 52 / 100, span, false, 8);
-            var thresher = isAmoled() ? _thresherAmoled : _thresherMip;
             drawEncounter(dc, thresher, cy, pixelsPerTenMeters, depth,
                 target * 80 / 100, span, false, 6);
         } else if (territory == 2) {
             drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
                 target * 24 / 100, span, true, 4);
-            var manta = isAmoled() ? _mantaAmoled : _mantaMip;
             drawEncounter(dc, manta, cy, pixelsPerTenMeters, depth,
                 target * 58 / 100, span, true, 7);
             drawEncounter(dc, turtle, cy, pixelsPerTenMeters, depth,
@@ -754,14 +817,11 @@ class DeepLineView extends WatchUi.View {
         } else if (territory == 3) {
             drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
                 target * 24 / 100, span, true, 4);
-            var hammerhead = isAmoled() ? _hammerheadAmoled : _hammerheadMip;
             drawEncounter(dc, hammerhead, cy, pixelsPerTenMeters, depth,
                 target * 56 / 100, span, false, 6);
-            var bahamasManta = isAmoled() ? _mantaAmoled : _mantaMip;
-            drawEncounter(dc, bahamasManta, cy, pixelsPerTenMeters, depth,
+            drawEncounter(dc, manta, cy, pixelsPerTenMeters, depth,
                 target * 82 / 100, span, true, 7);
         } else {
-            var penguin = isAmoled() ? _penguinAmoled : _penguinMip;
             drawEncounter(dc, penguin, cy, pixelsPerTenMeters, depth,
                 target * 25 / 100, span, true, 5);
             drawEncounter(dc, orca, cy, pixelsPerTenMeters, depth,
@@ -867,6 +927,78 @@ class DeepLineView extends WatchUi.View {
         if (buoyPhase == 3) { buoyBob = scaled(1); }
         dc.drawBitmap(cx - (buoy.getWidth() / 2),
             y - (buoy.getHeight() * 74 / 100) + buoyBob, buoy);
+
+        if (_model.getTerritory() == 4 &&
+                _model.getState() != DiveConstants.STATE_MENU) {
+            drawAntarcticIce(dc, y);
+        }
+    }
+
+    private function drawAntarcticIce(dc as Graphics.Dc, y as Lang.Number) as Void {
+        var width = dc.getWidth();
+        var slide = scaled(_iceTransitionTicks * 6);
+        var left = -slide;
+        var right = width + slide;
+        var showSeal = _model.getState() == DiveConstants.STATE_LEVEL_SELECT &&
+            _model.getSelectedLevel() == 13;
+
+        // Pack-ice floes enter from opposite edges whenever an Antarctic level
+        // is selected. The center stays open for the buoy and dive line.
+        dc.setColor(isAmoled() ? 0x77BED1 : 0x5588AA,
+            Graphics.COLOR_TRANSPARENT);
+        dc.fillPolygon([
+            [left - scaled(16), y],
+            [left + scaled(100), y + scaled(1)],
+            [left + scaled(88), y + scaled(14)],
+            [left + scaled(8), y + scaled(12)]
+        ]);
+        dc.fillPolygon([
+            [right + scaled(16), y],
+            [right - scaled(96), y + scaled(1)],
+            [right - scaled(84), y + scaled(13)],
+            [right - scaled(7), y + scaled(11)]
+        ]);
+
+        dc.setColor(COLOR_FOAM, Graphics.COLOR_TRANSPARENT);
+        dc.fillPolygon([
+            [left - scaled(16), y - scaled(4)],
+            [left + scaled(18), y - scaled(10)],
+            [left + scaled(53), y - scaled(8)],
+            [left + scaled(100), y - scaled(3)],
+            [left + scaled(86), y + scaled(5)],
+            [left + scaled(10), y + scaled(6)]
+        ]);
+        dc.fillPolygon([
+            [right + scaled(16), y - scaled(4)],
+            [right - scaled(16), y - scaled(9)],
+            [right - scaled(50), y - scaled(14)],
+            [right - scaled(96), y - scaled(3)],
+            [right - scaled(82), y + scaled(5)],
+            [right - scaled(8), y + scaled(6)]
+        ]);
+
+        dc.setColor(isAmoled() ? 0xD1F1F4 : 0xAAAAAA,
+            Graphics.COLOR_TRANSPARENT);
+        dc.fillPolygon([
+            [left + scaled(22), y - scaled(7)],
+            [left + scaled(45), y - scaled(12)],
+            [left + scaled(70), y - scaled(7)],
+            [left + scaled(36), y - scaled(4)]
+        ]);
+        dc.fillPolygon([
+            [right - scaled(20), y - scaled(7)],
+            [right - scaled(44), y - scaled(12)],
+            [right - scaled(69), y - scaled(7)],
+            [right - scaled(35), y - scaled(4)]
+        ]);
+
+        if (showSeal) {
+            var seal = isAmoled() ? _leopardSealFloeAmoled : _leopardSealFloeMip;
+            var sealX = left + scaled(90) - (seal.getWidth() / 2);
+            var sealY = y - (seal.getHeight() * 75 / 100);
+            dc.drawBitmap(sealX, sealY, seal);
+        }
+
     }
 
     private function drawDiver(dc as Graphics.Dc, x as Lang.Number, y as Lang.Number,

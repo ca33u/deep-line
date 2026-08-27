@@ -48,12 +48,24 @@
     <bitmap id="Orca1Amoled" filename="generated/orca_1_amoled.png"/>
     <bitmap id="SeaLionMip" filename="generated/sea_lion_mip.png"/>
     <bitmap id="SeaLionAmoled" filename="generated/sea_lion_amoled.png"/>
+    <bitmap id="SeaLion1Mip" filename="generated/sea_lion_1_mip.png"/>
+    <bitmap id="SeaLion1Amoled" filename="generated/sea_lion_1_amoled.png"/>
     <bitmap id="ThresherSharkMip" filename="generated/thresher_shark_mip.png"/>
     <bitmap id="ThresherSharkAmoled" filename="generated/thresher_shark_amoled.png"/>
+    <bitmap id="ThresherShark1Mip" filename="generated/thresher_shark_1_mip.png"/>
+    <bitmap id="ThresherShark1Amoled" filename="generated/thresher_shark_1_amoled.png"/>
     <bitmap id="MantaRayMip" filename="generated/manta_ray_mip.png"/>
     <bitmap id="MantaRayAmoled" filename="generated/manta_ray_amoled.png"/>
+    <bitmap id="MantaRay1Mip" filename="generated/manta_ray_1_mip.png"/>
+    <bitmap id="MantaRay1Amoled" filename="generated/manta_ray_1_amoled.png"/>
     <bitmap id="HammerheadSharkMip" filename="generated/hammerhead_shark_mip.png"/>
     <bitmap id="HammerheadSharkAmoled" filename="generated/hammerhead_shark_amoled.png"/>
+    <bitmap id="HammerheadShark1Mip" filename="generated/hammerhead_shark_1_mip.png"/>
+    <bitmap id="HammerheadShark1Amoled" filename="generated/hammerhead_shark_1_amoled.png"/>
     <bitmap id="SwimmingPenguinMip" filename="generated/swimming_penguin_mip.png"/>
     <bitmap id="SwimmingPenguinAmoled" filename="generated/swimming_penguin_amoled.png"/>
+    <bitmap id="SwimmingPenguin1Mip" filename="generated/swimming_penguin_1_mip.png"/>
+    <bitmap id="SwimmingPenguin1Amoled" filename="generated/swimming_penguin_1_amoled.png"/>
+    <bitmap id="LeopardSealFloeMip" filename="generated/leopard_seal_floe_mip.png"/>
+    <bitmap id="LeopardSealFloeAmoled" filename="generated/leopard_seal_floe_amoled.png"/>
 </drawables>
