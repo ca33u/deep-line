@@ -23,6 +23,25 @@ function testStartAndPausePreserveDepth(logger as Test.Logger) as Lang.Boolean {
 }
 
 (:test)
+function testStartUsesDuckDive(logger as Test.Logger) as Lang.Boolean {
+    var model = new DiveModel();
+    model.startGame();
+    if (model.getState() != DiveConstants.STATE_DUCK_DIVE || model.getDepthCm() != 0) {
+        logger.error("game did not begin at the surface");
+        return false;
+    }
+    for (var tick = 0; tick < 11; tick += 1) {
+        model.advance();
+    }
+    if (model.getState() != DiveConstants.STATE_DUCK_DIVE || model.getDepthCm() != 0) {
+        logger.error("duck dive moved depth before animation completed");
+        return false;
+    }
+    return model.advance() == DiveConstants.EVENT_DUCKED &&
+        model.getState() == DiveConstants.STATE_DESCENDING;
+}
+
+(:test)
 function testPerfectEqualization(logger as Test.Logger) as Lang.Boolean {
     var model = new DiveModel();
     model.startGame();

@@ -11,6 +11,9 @@
     <bitmap id="DiverTurn0Mip" filename="generated/diver_turn_mip.png"/>
     <bitmap id="DiverTurn1Mip" filename="generated/diver_turn_1_mip.png"/>
     <bitmap id="DiverTurn2Mip" filename="generated/diver_turn_2_mip.png"/>
+    <bitmap id="DiverDuck0Mip" filename="generated/diver_duck_mip.png"/>
+    <bitmap id="DiverDuck1Mip" filename="generated/diver_duck_1_mip.png"/>
+    <bitmap id="DiverDuck2Mip" filename="generated/diver_duck_2_mip.png"/>
     <bitmap id="DiverDescend0Amoled" filename="generated/diver_descend_amoled.png"/>
     <bitmap id="DiverDescend1Amoled" filename="generated/diver_descend_1_amoled.png"/>
     <bitmap id="DiverDescend2Amoled" filename="generated/diver_descend_2_amoled.png"/>
@@ -22,8 +25,17 @@
     <bitmap id="DiverTurn0Amoled" filename="generated/diver_turn_amoled.png"/>
     <bitmap id="DiverTurn1Amoled" filename="generated/diver_turn_1_amoled.png"/>
     <bitmap id="DiverTurn2Amoled" filename="generated/diver_turn_2_amoled.png"/>
+    <bitmap id="DiverDuck0Amoled" filename="generated/diver_duck_amoled.png"/>
+    <bitmap id="DiverDuck1Amoled" filename="generated/diver_duck_1_amoled.png"/>
+    <bitmap id="DiverDuck2Amoled" filename="generated/diver_duck_2_amoled.png"/>
     <bitmap id="BuoyMip" filename="generated/buoy_mip.png"/>
     <bitmap id="BuoyAmoled" filename="generated/buoy_amoled.png"/>
     <bitmap id="TagMip" filename="generated/tag_mip.png"/>
     <bitmap id="TagAmoled" filename="generated/tag_amoled.png"/>
+    <bitmap id="FishSchoolMip" filename="generated/fish_school_mip.png"/>
+    <bitmap id="FishSchoolAmoled" filename="generated/fish_school_amoled.png"/>
+    <bitmap id="GreenTurtleMip" filename="generated/green_turtle_mip.png"/>
+    <bitmap id="GreenTurtleAmoled" filename="generated/green_turtle_amoled.png"/>
+    <bitmap id="OrcaMip" filename="generated/orca_mip.png"/>
+    <bitmap id="OrcaAmoled" filename="generated/orca_amoled.png"/>
 </drawables>

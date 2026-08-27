@@ -9,6 +9,7 @@ module DiveConstants {
     const STATE_PAUSED = 4;
     const STATE_RESULT = 5;
     const STATE_SURFACING = 6;
+    const STATE_DUCK_DIVE = 7;
 
     const CUE_NONE = 0;
     const CUE_EQUALIZE = 1;
@@ -30,6 +31,7 @@ module DiveConstants {
     const EVENT_SURFACED = 10;
     const EVENT_TAGGED = 11;
     const EVENT_SURFACE_REACHED = 12;
+    const EVENT_DUCKED = 13;
 
     const TARGET_DEPTH_CM = 2000;
     const DESCENT_SPEED_CM = 10;
@@ -56,6 +58,7 @@ class DiveModel {
     private var _nextAscentCue as Lang.Number = 0;
     private var _strokeBoostTicks as Lang.Number = 0;
     private var _surfaceAge as Lang.Number = 0;
+    private var _duckAge as Lang.Number = 0;
     private var _targetReached as Lang.Boolean = false;
     private var _equalizeDepths as Lang.Array<Lang.Number> = [300, 600, 900, 1200, 1500, 1800];
     private var _strokeDepths as Lang.Array<Lang.Number> = [1700, 1400, 1100, 800, 500];
@@ -69,8 +72,8 @@ class DiveModel {
     }
 
     function startGame() as Void {
-        _state = DiveConstants.STATE_DESCENDING;
-        _stateBeforePause = DiveConstants.STATE_DESCENDING;
+        _state = DiveConstants.STATE_DUCK_DIVE;
+        _stateBeforePause = DiveConstants.STATE_DUCK_DIVE;
         _depthCm = 0;
         _maxDepthCm = 0;
         _flow = DiveConstants.MAX_FLOW;
@@ -85,6 +88,7 @@ class DiveModel {
         _nextAscentCue = 0;
         _strokeBoostTicks = 0;
         _surfaceAge = 0;
+        _duckAge = 0;
         _targetReached = false;
     }
 
@@ -112,10 +116,16 @@ class DiveModel {
         if (_state == DiveConstants.STATE_SURFACING) {
             return advanceSurfacing();
         }
+        if (_state == DiveConstants.STATE_DUCK_DIVE) {
+            return advanceDuckDive();
+        }
         return DiveConstants.EVENT_NONE;
     }
 
     function action() as Lang.Number {
+        if (_state == DiveConstants.STATE_DUCK_DIVE) {
+            return DiveConstants.EVENT_NONE;
+        }
         if (_state == DiveConstants.STATE_DESCENDING) {
             if (_cueKind == DiveConstants.CUE_EQUALIZE) {
                 return resolveCue(100, 60, 2);
@@ -268,6 +278,16 @@ class DiveModel {
         return DiveConstants.EVENT_NONE;
     }
 
+    private function advanceDuckDive() as Lang.Number {
+        _duckAge += 1;
+        if (_duckAge >= 12) {
+            _state = DiveConstants.STATE_DESCENDING;
+            _stateBeforePause = DiveConstants.STATE_DESCENDING;
+            return DiveConstants.EVENT_DUCKED;
+        }
+        return DiveConstants.EVENT_NONE;
+    }
+
     private function resolveCue(perfectPoints as Lang.Number, goodPoints as Lang.Number,
             flowGain as Lang.Number) as Lang.Number {
         var age = _cueAge;
@@ -336,7 +356,8 @@ class DiveModel {
         return _state == DiveConstants.STATE_DESCENDING ||
             _state == DiveConstants.STATE_TURNING ||
             _state == DiveConstants.STATE_ASCENDING ||
-            _state == DiveConstants.STATE_SURFACING;
+            _state == DiveConstants.STATE_SURFACING ||
+            _state == DiveConstants.STATE_DUCK_DIVE;
     }
 
     function getState() as Lang.Number { return _state; }
@@ -350,6 +371,7 @@ class DiveModel {
     function getMissCount() as Lang.Number { return _missCount; }
     function getCueKind() as Lang.Number { return _cueKind; }
     function getCueAge() as Lang.Number { return _cueAge; }
+    function getDuckAge() as Lang.Number { return _duckAge; }
     function getTargetDepthCm() as Lang.Number { return DiveConstants.TARGET_DEPTH_CM; }
     function didReachTarget() as Lang.Boolean { return _targetReached; }
 }

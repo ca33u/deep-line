@@ -45,12 +45,19 @@ class DeepLineView extends WatchUi.View {
     private var _ascentFrames as Lang.Array<WatchUi.BitmapResource> = [];
     private var _equalizeFrames as Lang.Array<WatchUi.BitmapResource> = [];
     private var _turnFrames as Lang.Array<WatchUi.BitmapResource> = [];
+    private var _duckFrames as Lang.Array<WatchUi.BitmapResource> = [];
     private var _framesLoaded as Lang.Boolean = false;
     private var _loadedAmoled as Lang.Boolean = false;
     private var _buoyMip as WatchUi.BitmapResource;
     private var _buoyAmoled as WatchUi.BitmapResource;
     private var _tagMip as WatchUi.BitmapResource;
     private var _tagAmoled as WatchUi.BitmapResource;
+    private var _fishMip as WatchUi.BitmapResource;
+    private var _fishAmoled as WatchUi.BitmapResource;
+    private var _turtleMip as WatchUi.BitmapResource;
+    private var _turtleAmoled as WatchUi.BitmapResource;
+    private var _orcaMip as WatchUi.BitmapResource;
+    private var _orcaAmoled as WatchUi.BitmapResource;
 
     function initialize() {
         View.initialize();
@@ -60,6 +67,12 @@ class DeepLineView extends WatchUi.View {
         _buoyAmoled = WatchUi.loadResource($.Rez.Drawables.BuoyAmoled) as WatchUi.BitmapResource;
         _tagMip = WatchUi.loadResource($.Rez.Drawables.TagMip) as WatchUi.BitmapResource;
         _tagAmoled = WatchUi.loadResource($.Rez.Drawables.TagAmoled) as WatchUi.BitmapResource;
+        _fishMip = WatchUi.loadResource($.Rez.Drawables.FishSchoolMip) as WatchUi.BitmapResource;
+        _fishAmoled = WatchUi.loadResource($.Rez.Drawables.FishSchoolAmoled) as WatchUi.BitmapResource;
+        _turtleMip = WatchUi.loadResource($.Rez.Drawables.GreenTurtleMip) as WatchUi.BitmapResource;
+        _turtleAmoled = WatchUi.loadResource($.Rez.Drawables.GreenTurtleAmoled) as WatchUi.BitmapResource;
+        _orcaMip = WatchUi.loadResource($.Rez.Drawables.OrcaMip) as WatchUi.BitmapResource;
+        _orcaAmoled = WatchUi.loadResource($.Rez.Drawables.OrcaAmoled) as WatchUi.BitmapResource;
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
@@ -168,7 +181,8 @@ class DeepLineView extends WatchUi.View {
         if (event == DiveConstants.EVENT_NONE || event == DiveConstants.EVENT_CUE ||
                 event == DiveConstants.EVENT_GLIDE_STARTED ||
                 event == DiveConstants.EVENT_TURN_READY ||
-                event == DiveConstants.EVENT_SURFACE_REACHED) {
+                event == DiveConstants.EVENT_SURFACE_REACHED ||
+                event == DiveConstants.EVENT_DUCKED) {
             return;
         }
 
@@ -323,7 +337,7 @@ class DeepLineView extends WatchUi.View {
         dc.drawText(cx, height * 47 / 100, Graphics.FONT_XTINY, "ONE BREATH · ONE LINE",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        drawDiver(dc, cx - scaled(27), height * 66 / 100, true);
+        drawDuckFrame(dc, 0, cx - scaled(58), height * 22 / 100 + scaled(7));
         drawActionPill(dc, cx, height * 88 / 100, "TAP / START", COLOR_ACCENT);
     }
 
@@ -337,6 +351,11 @@ class DeepLineView extends WatchUi.View {
             (state == DiveConstants.STATE_PAUSED && _model.getCueKind() == DiveConstants.CUE_EQUALIZE);
 
         drawWorld(dc, cx, cy);
+        if (state == DiveConstants.STATE_DUCK_DIVE) {
+            drawDuckSequence(dc, cx, cy);
+            drawFeedback(dc, cx, cy);
+            return;
+        }
         var diverX = state == DiveConstants.STATE_TURNING ?
             cx - scaled(38) : cx - scaled(28);
         var diverY = state == DiveConstants.STATE_SURFACING ?
@@ -353,6 +372,8 @@ class DeepLineView extends WatchUi.View {
         var height = dc.getHeight();
         var depth = _model.getDepthCm();
         var pixelsPerTenMeters = height * 82 / 100;
+
+        drawDepthLife(dc, cx, cy, pixelsPerTenMeters, depth);
 
         dc.setColor(COLOR_ABYSS, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(4));
@@ -392,6 +413,62 @@ class DeepLineView extends WatchUi.View {
         if (showTag && targetY > -scaled(40) && targetY < height + scaled(40)) {
             drawTag(dc, cx, targetY);
         }
+    }
+
+    private function drawDepthLife(dc as Graphics.Dc, cx as Lang.Number,
+            cy as Lang.Number, pixelsPerTenMeters as Lang.Number,
+            depth as Lang.Number) as Void {
+        var width = dc.getWidth();
+        var height = dc.getHeight();
+        var swimPhase = _animationTick % 24;
+        var swim = swimPhase <= 12 ? swimPhase : 24 - swimPhase;
+        var drift = (swim - 6) * scaled(1);
+
+        var fish = isAmoled() ? _fishAmoled : _fishMip;
+        var fishY = cy + ((450 - depth) * pixelsPerTenMeters / 1000);
+        if (fishY > height * 12 / 100 && fishY < height * 88 / 100) {
+            dc.drawBitmap(width * 64 / 100 - (fish.getWidth() / 2) + drift,
+                fishY - (fish.getHeight() / 2), fish);
+        }
+
+        var turtle = isAmoled() ? _turtleAmoled : _turtleMip;
+        var turtleY = cy + ((1000 - depth) * pixelsPerTenMeters / 1000);
+        if (turtleY > height * 12 / 100 && turtleY < height * 88 / 100) {
+            dc.drawBitmap(width * 27 / 100 - (turtle.getWidth() / 2) - drift,
+                turtleY - (turtle.getHeight() / 2), turtle);
+        }
+
+        if (_model.getState() == DiveConstants.STATE_DESCENDING) {
+            var orca = isAmoled() ? _orcaAmoled : _orcaMip;
+            var orcaY = cy + ((1650 - depth) * pixelsPerTenMeters / 1000);
+            if (orcaY > height * 12 / 100 && orcaY < height * 88 / 100) {
+                dc.drawBitmap(width * 55 / 100 - (orca.getWidth() / 2) + (drift / 2),
+                    orcaY - (orca.getHeight() / 2), orca);
+            }
+        }
+    }
+
+    private function drawDuckSequence(dc as Graphics.Dc, cx as Lang.Number,
+            surfaceY as Lang.Number) as Void {
+        var age = _model.getDuckAge();
+        if (age < 4) {
+            drawDuckFrame(dc, 0, cx - scaled(58), surfaceY + scaled(7));
+        } else if (age < 8) {
+            drawDuckFrame(dc, 1, cx - scaled(38), surfaceY + scaled(20));
+        } else {
+            var settle = 20 - ((age - 8) * 5);
+            drawDuckFrame(dc, 2, cx - scaled(28), surfaceY + scaled(settle));
+        }
+    }
+
+    private function drawDuckFrame(dc as Graphics.Dc, index as Lang.Number,
+            x as Lang.Number, y as Lang.Number) as Void {
+        if (_duckFrames.size() <= index) {
+            return;
+        }
+        var frame = _duckFrames[index];
+        dc.drawBitmap(x - (frame.getWidth() / 2),
+            y - (frame.getHeight() / 2), frame);
     }
 
     private function drawSurfaceAndBuoy(dc as Graphics.Dc, cx as Lang.Number,
@@ -490,15 +567,26 @@ class DeepLineView extends WatchUi.View {
         }
 
         if (cue == DiveConstants.CUE_EQUALIZE || cue == DiveConstants.CUE_STROKE) {
-            var movingRadius = scaled(126 - (_model.getCueAge() * 11));
+            var cueAge = _model.getCueAge();
+            var movingRadius = scaled(126 - (cueAge * 11));
             if (movingRadius < scaled(70)) {
                 movingRadius = scaled(70);
             }
-            dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+            var targetColor = COLOR_DIM;
+            if (cueAge >= 2 && cueAge <= 3) {
+                targetColor = COLOR_GOOD;
+            }
+            dc.setColor(targetColor, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(scaled(1));
             dc.drawCircle(cx, cy, scaled(70));
             dc.drawCircle(cx, cy, scaled(74));
-            dc.setColor(COLOR_ACCENT, Graphics.COLOR_TRANSPARENT);
+            var ringColor = COLOR_FOAM;
+            if (cueAge >= 2 && cueAge <= 3) {
+                ringColor = COLOR_GOOD;
+            } else if (cueAge >= 4) {
+                ringColor = COLOR_LINE;
+            }
+            dc.setColor(ringColor, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(scaled(2));
             dc.drawCircle(cx, cy, movingRadius);
         } else if (cue == DiveConstants.CUE_TAG || cue == DiveConstants.CUE_TURN) {
@@ -712,6 +800,11 @@ class DeepLineView extends WatchUi.View {
                 WatchUi.loadResource($.Rez.Drawables.DiverTurn1Amoled) as WatchUi.BitmapResource,
                 WatchUi.loadResource($.Rez.Drawables.DiverTurn2Amoled) as WatchUi.BitmapResource
             ];
+            _duckFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverDuck0Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDuck1Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDuck2Amoled) as WatchUi.BitmapResource
+            ];
         } else {
             _descentFrames = [
                 WatchUi.loadResource($.Rez.Drawables.DiverDescend0Mip) as WatchUi.BitmapResource,
@@ -731,6 +824,11 @@ class DeepLineView extends WatchUi.View {
                 WatchUi.loadResource($.Rez.Drawables.DiverTurn0Mip) as WatchUi.BitmapResource,
                 WatchUi.loadResource($.Rez.Drawables.DiverTurn1Mip) as WatchUi.BitmapResource,
                 WatchUi.loadResource($.Rez.Drawables.DiverTurn2Mip) as WatchUi.BitmapResource
+            ];
+            _duckFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverDuck0Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDuck1Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDuck2Mip) as WatchUi.BitmapResource
             ];
         }
 
