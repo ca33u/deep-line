@@ -1,7 +1,9 @@
 # Territory wildlife prompt set
 
-Generated with OpenAI built-in ImageGen on 2026-08-27. The existing
-`art/source/orca.png` was supplied as a style reference only.
+Generated with OpenAI built-in ImageGen on 2026-08-27. The initial batch used
+`art/source/orca.png` as a style reference. Manta and hammerhead were later
+rebuilt from `art/source/thresher-shark.png` so the shared style did not leak
+orca anatomy or markings into their silhouettes.
 
 ## Shared prompt
 
@@ -42,3 +44,21 @@ The first sea-lion output baked a checkerboard into RGB. It received a second
 `background-extraction` edit with the instruction to change only the background
 to genuine alpha while preserving the animal. All five accepted sources are
 RGBA and are downscaled reproducibly by `scripts/build-art-assets.sh`.
+
+## Anatomy correction: manta and hammerhead
+
+The first manta looked like an orca with wings, and the first hammerhead split
+the cephalofoil into cartoon eye stalks. Both were replaced rather than edited.
+
+- **Manta v2:** near-dorsal view; one continuous diamond-shaped pectoral disc,
+  two compact cephalic lobes around a terminal mouth, lateral eyes, and one long
+  unbarbed whip tail. Charcoal/slate dorsal color only, with no orca patches.
+- **Hammerhead v2:** slight top-down view; one continuous broadly arched
+  scalloped cephalofoil, small eyes integrated at its lateral tips, a slender
+  fusiform torso, tall first dorsal fin, small second dorsal fin, and a
+  heterocercal tail. No protruding eye bulbs or black-and-white markings.
+
+The accepted manta then received a background-only extraction pass because its
+first output contained a baked checkerboard. Both replacement sources are RGBA
+and were checked again at their actual runtime sizes (`80x54` / `112x76` for the
+manta and `90x48` / `126x68` for the hammerhead).
