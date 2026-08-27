@@ -34,8 +34,14 @@
     <bitmap id="TagAmoled" filename="generated/tag_amoled.png"/>
     <bitmap id="FishSchoolMip" filename="generated/fish_school_mip.png"/>
     <bitmap id="FishSchoolAmoled" filename="generated/fish_school_amoled.png"/>
+    <bitmap id="FishSchool1Mip" filename="generated/fish_school_1_mip.png"/>
+    <bitmap id="FishSchool1Amoled" filename="generated/fish_school_1_amoled.png"/>
     <bitmap id="GreenTurtleMip" filename="generated/green_turtle_mip.png"/>
     <bitmap id="GreenTurtleAmoled" filename="generated/green_turtle_amoled.png"/>
+    <bitmap id="GreenTurtle1Mip" filename="generated/green_turtle_1_mip.png"/>
+    <bitmap id="GreenTurtle1Amoled" filename="generated/green_turtle_1_amoled.png"/>
     <bitmap id="OrcaMip" filename="generated/orca_mip.png"/>
     <bitmap id="OrcaAmoled" filename="generated/orca_amoled.png"/>
+    <bitmap id="Orca1Mip" filename="generated/orca_1_mip.png"/>
+    <bitmap id="Orca1Amoled" filename="generated/orca_1_amoled.png"/>
 </drawables>

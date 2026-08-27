@@ -54,10 +54,16 @@ class DeepLineView extends WatchUi.View {
     private var _tagAmoled as WatchUi.BitmapResource;
     private var _fishMip as WatchUi.BitmapResource;
     private var _fishAmoled as WatchUi.BitmapResource;
+    private var _fish1Mip as WatchUi.BitmapResource;
+    private var _fish1Amoled as WatchUi.BitmapResource;
     private var _turtleMip as WatchUi.BitmapResource;
     private var _turtleAmoled as WatchUi.BitmapResource;
+    private var _turtle1Mip as WatchUi.BitmapResource;
+    private var _turtle1Amoled as WatchUi.BitmapResource;
     private var _orcaMip as WatchUi.BitmapResource;
     private var _orcaAmoled as WatchUi.BitmapResource;
+    private var _orca1Mip as WatchUi.BitmapResource;
+    private var _orca1Amoled as WatchUi.BitmapResource;
 
     function initialize() {
         View.initialize();
@@ -69,10 +75,16 @@ class DeepLineView extends WatchUi.View {
         _tagAmoled = WatchUi.loadResource($.Rez.Drawables.TagAmoled) as WatchUi.BitmapResource;
         _fishMip = WatchUi.loadResource($.Rez.Drawables.FishSchoolMip) as WatchUi.BitmapResource;
         _fishAmoled = WatchUi.loadResource($.Rez.Drawables.FishSchoolAmoled) as WatchUi.BitmapResource;
+        _fish1Mip = WatchUi.loadResource($.Rez.Drawables.FishSchool1Mip) as WatchUi.BitmapResource;
+        _fish1Amoled = WatchUi.loadResource($.Rez.Drawables.FishSchool1Amoled) as WatchUi.BitmapResource;
         _turtleMip = WatchUi.loadResource($.Rez.Drawables.GreenTurtleMip) as WatchUi.BitmapResource;
         _turtleAmoled = WatchUi.loadResource($.Rez.Drawables.GreenTurtleAmoled) as WatchUi.BitmapResource;
+        _turtle1Mip = WatchUi.loadResource($.Rez.Drawables.GreenTurtle1Mip) as WatchUi.BitmapResource;
+        _turtle1Amoled = WatchUi.loadResource($.Rez.Drawables.GreenTurtle1Amoled) as WatchUi.BitmapResource;
         _orcaMip = WatchUi.loadResource($.Rez.Drawables.OrcaMip) as WatchUi.BitmapResource;
         _orcaAmoled = WatchUi.loadResource($.Rez.Drawables.OrcaAmoled) as WatchUi.BitmapResource;
+        _orca1Mip = WatchUi.loadResource($.Rez.Drawables.Orca1Mip) as WatchUi.BitmapResource;
+        _orca1Amoled = WatchUi.loadResource($.Rez.Drawables.Orca1Amoled) as WatchUi.BitmapResource;
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
@@ -422,16 +434,22 @@ class DeepLineView extends WatchUi.View {
         var height = dc.getHeight();
         var swimPhase = _animationTick % 24;
         var swim = swimPhase <= 12 ? swimPhase : 24 - swimPhase;
-        var drift = (swim - 6) * scaled(1);
+        var drift = (swim - 6) * scaled(1) / 2;
 
-        var fish = isAmoled() ? _fishAmoled : _fishMip;
+        var fishAlt = ((_animationTick / 4) % 2) == 1;
+        var fish = isAmoled() ?
+            (fishAlt ? _fish1Amoled : _fishAmoled) :
+            (fishAlt ? _fish1Mip : _fishMip);
         var fishY = cy + ((450 - depth) * pixelsPerTenMeters / 1000);
         if (fishY > height * 12 / 100 && fishY < height * 88 / 100) {
             dc.drawBitmap(width * 64 / 100 - (fish.getWidth() / 2) + drift,
                 fishY - (fish.getHeight() / 2), fish);
         }
 
-        var turtle = isAmoled() ? _turtleAmoled : _turtleMip;
+        var turtleAlt = ((_animationTick / 8) % 2) == 1;
+        var turtle = isAmoled() ?
+            (turtleAlt ? _turtle1Amoled : _turtleAmoled) :
+            (turtleAlt ? _turtle1Mip : _turtleMip);
         var turtleY = cy + ((1000 - depth) * pixelsPerTenMeters / 1000);
         if (turtleY > height * 12 / 100 && turtleY < height * 88 / 100) {
             dc.drawBitmap(width * 27 / 100 - (turtle.getWidth() / 2) - drift,
@@ -439,7 +457,10 @@ class DeepLineView extends WatchUi.View {
         }
 
         if (_model.getState() == DiveConstants.STATE_DESCENDING) {
-            var orca = isAmoled() ? _orcaAmoled : _orcaMip;
+            var orcaAlt = ((_animationTick / 6) % 2) == 1;
+            var orca = isAmoled() ?
+                (orcaAlt ? _orca1Amoled : _orcaAmoled) :
+                (orcaAlt ? _orca1Mip : _orcaMip);
             var orcaY = cy + ((1650 - depth) * pixelsPerTenMeters / 1000);
             if (orcaY > height * 12 / 100 && orcaY < height * 88 / 100) {
                 dc.drawBitmap(width * 55 / 100 - (orca.getWidth() / 2) + (drift / 2),
