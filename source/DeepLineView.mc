@@ -527,16 +527,14 @@ class DeepLineView extends WatchUi.View {
 
         dc.setColor(COLOR_FOAM, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(1));
-        var waveWidth = width * 52 / 100;
-        var waveLeft = cx - (waveWidth / 2);
-        var segment = waveWidth / 6;
+        var waveSegments = 10;
         var wavePhase = (_animationTick / 2) % 2;
-        for (var index = 0; index < 6; index += 1) {
+        for (var index = 0; index < waveSegments; index += 1) {
             var high = (index + wavePhase) % 2 == 0;
             var waveY = y + (high ? -scaled(1) : scaled(1));
             var nextY = y + (high ? scaled(1) : -scaled(1));
-            dc.drawLine(waveLeft + (index * segment), waveY,
-                waveLeft + ((index + 1) * segment), nextY);
+            dc.drawLine(index * width / waveSegments, waveY,
+                (index + 1) * width / waveSegments, nextY);
         }
 
         var buoy = isAmoled() ? _buoyAmoled : _buoyMip;
