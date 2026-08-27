@@ -48,7 +48,7 @@ render_frame "$equalize" "768:1024:0:0" "52:78" "72:108" "diver_equalize"
 render_frame "$equalize" "768:1024:768:0" "52:78" "72:108" "diver_equalize_1"
 
 render_frame "$turn" "512:1024:0:0" "52:78" "72:108" "diver_turn"
-render_frame "$turn_middle" "1100:850:75:175" "78:60" "108:84" "diver_turn_1"
+render_frame "$turn_middle" "1150:420:50:390" "92:44" "128:62" "diver_turn_1"
 render_frame "$turn" "512:1024:1024:0" "52:78" "72:108" "diver_turn_2"
 
 render_frame "$duck" "820:360:0:500" "92:44" "128:62" "diver_duck"
