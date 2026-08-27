@@ -12,6 +12,12 @@ Deep Line is an arcade game. It is not a breath-hold trainer, dive computer or s
 - BACK or MENU during a dive: pause
 - BACK from menu or result: exit
 
+## Visual system
+
+The game uses four illustrated diver poses plus dedicated buoy and tag assets. Compact versions are loaded on 280 px MIP watches and larger versions on 390 px AMOLED watches. Ocean depth bands, rays, particles, line markers, timing rings and HUD elements stay code-drawn to keep memory and redraw cost predictable.
+
+Image-generation source sheets and their art-direction notes live in `art/`. Watch-ready assets live in `resources/drawables/generated/`.
+
 ## Building
 
 SDK 9.2.0 and a Garmin developer key are required.

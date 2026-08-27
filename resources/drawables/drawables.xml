@@ -1,3 +1,15 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.svg"/>
+    <bitmap id="DiverDescendMip" filename="generated/diver_descend_mip.png"/>
+    <bitmap id="DiverAscendMip" filename="generated/diver_ascend_mip.png"/>
+    <bitmap id="DiverEqualizeMip" filename="generated/diver_equalize_mip.png"/>
+    <bitmap id="DiverTurnMip" filename="generated/diver_turn_mip.png"/>
+    <bitmap id="DiverDescendAmoled" filename="generated/diver_descend_amoled.png"/>
+    <bitmap id="DiverAscendAmoled" filename="generated/diver_ascend_amoled.png"/>
+    <bitmap id="DiverEqualizeAmoled" filename="generated/diver_equalize_amoled.png"/>
+    <bitmap id="DiverTurnAmoled" filename="generated/diver_turn_amoled.png"/>
+    <bitmap id="BuoyMip" filename="generated/buoy_mip.png"/>
+    <bitmap id="BuoyAmoled" filename="generated/buoy_amoled.png"/>
+    <bitmap id="TagMip" filename="generated/tag_mip.png"/>
+    <bitmap id="TagAmoled" filename="generated/tag_amoled.png"/>
 </drawables>
