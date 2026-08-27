@@ -1,0 +1,21 @@
+<?xml version="1.0"?>
+<iq:manifest version="3" xmlns:iq="http://www.garmin.com/xml/connectiq">
+    <iq:application
+        id="2ec6834bfe2648e0b083a5d15d1dc7e2"
+        type="watch-app"
+        name="@Strings.AppName"
+        entry="DeepLineApp"
+        launcherIcon="@Drawables.LauncherIcon"
+        minApiLevel="3.4.0">
+        <iq:products>
+            <iq:product id="fenix7xpronowifi"/>
+            <iq:product id="vivoactive6"/>
+        </iq:products>
+        <iq:permissions/>
+        <iq:languages>
+            <iq:language>eng</iq:language>
+            <iq:language>rus</iq:language>
+        </iq:languages>
+        <iq:barrels/>
+    </iq:application>
+</iq:manifest>
