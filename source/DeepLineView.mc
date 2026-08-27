@@ -10,10 +10,21 @@ class DeepLineView extends WatchUi.View {
     const REFERENCE_WIDTH = 280;
 
     const COLOR_ABYSS = 0x041823;
+    const COLOR_ABYSS_HIGH = 0x05212E;
     const COLOR_DEEP = 0x062B3A;
+    const COLOR_DEEP_HIGH = 0x083A49;
     const COLOR_MID = 0x0A4A5B;
+    const COLOR_MID_HIGH = 0x0B5E6C;
     const COLOR_SHALLOW = 0x0D7180;
+    const COLOR_SHALLOW_HIGH = 0x11818A;
+    const COLOR_AQUA = 0x159398;
     const COLOR_SURFACE = 0x18A6A6;
+    const COLOR_SURFACE_HIGH = 0x1DB8B0;
+    const COLOR_MIP_SURFACE = 0x00AAAA;
+    const COLOR_MIP_LIGHT = 0x008888;
+    const COLOR_MIP_MID = 0x005555;
+    const COLOR_MIP_DEEP = 0x003333;
+    const COLOR_MIP_ABYSS = 0x001111;
     const COLOR_FOAM = 0xE7F2E9;
     const COLOR_LINE = 0xF0D69C;
     const COLOR_ACCENT = 0xFF6B3D;
@@ -29,8 +40,13 @@ class DeepLineView extends WatchUi.View {
     private var _screenHeight as Lang.Number = 280;
     private var _feedbackEvent as Lang.Number = DiveConstants.EVENT_NONE;
     private var _feedbackTicks as Lang.Number = 0;
-    private var _diversMip as Lang.Array<WatchUi.BitmapResource>;
-    private var _diversAmoled as Lang.Array<WatchUi.BitmapResource>;
+    private var _animationTick as Lang.Number = 0;
+    private var _descentFrames as Lang.Array<WatchUi.BitmapResource> = [];
+    private var _ascentFrames as Lang.Array<WatchUi.BitmapResource> = [];
+    private var _equalizeFrames as Lang.Array<WatchUi.BitmapResource> = [];
+    private var _turnFrames as Lang.Array<WatchUi.BitmapResource> = [];
+    private var _framesLoaded as Lang.Boolean = false;
+    private var _loadedAmoled as Lang.Boolean = false;
     private var _buoyMip as WatchUi.BitmapResource;
     private var _buoyAmoled as WatchUi.BitmapResource;
     private var _tagMip as WatchUi.BitmapResource;
@@ -40,18 +56,6 @@ class DeepLineView extends WatchUi.View {
         View.initialize();
         _model = new DiveModel();
         _timer = new Timer.Timer();
-        _diversMip = [
-            WatchUi.loadResource($.Rez.Drawables.DiverDescendMip) as WatchUi.BitmapResource,
-            WatchUi.loadResource($.Rez.Drawables.DiverAscendMip) as WatchUi.BitmapResource,
-            WatchUi.loadResource($.Rez.Drawables.DiverEqualizeMip) as WatchUi.BitmapResource,
-            WatchUi.loadResource($.Rez.Drawables.DiverTurnMip) as WatchUi.BitmapResource
-        ];
-        _diversAmoled = [
-            WatchUi.loadResource($.Rez.Drawables.DiverDescendAmoled) as WatchUi.BitmapResource,
-            WatchUi.loadResource($.Rez.Drawables.DiverAscendAmoled) as WatchUi.BitmapResource,
-            WatchUi.loadResource($.Rez.Drawables.DiverEqualizeAmoled) as WatchUi.BitmapResource,
-            WatchUi.loadResource($.Rez.Drawables.DiverTurnAmoled) as WatchUi.BitmapResource
-        ];
         _buoyMip = WatchUi.loadResource($.Rez.Drawables.BuoyMip) as WatchUi.BitmapResource;
         _buoyAmoled = WatchUi.loadResource($.Rez.Drawables.BuoyAmoled) as WatchUi.BitmapResource;
         _tagMip = WatchUi.loadResource($.Rez.Drawables.TagMip) as WatchUi.BitmapResource;
@@ -61,12 +65,11 @@ class DeepLineView extends WatchUi.View {
     function onLayout(dc as Graphics.Dc) as Void {
         _screenWidth = dc.getWidth();
         _screenHeight = dc.getHeight();
+        loadDiverFrames();
     }
 
     function onShow() as Void {
-        if (_model.isDiveActive()) {
-            startTimer();
-        }
+        startTimer();
     }
 
     function onHide() as Void {
@@ -76,6 +79,7 @@ class DeepLineView extends WatchUi.View {
     function startGame() as Void {
         _feedbackEvent = DiveConstants.EVENT_NONE;
         _feedbackTicks = 0;
+        _animationTick = 0;
         _model.startGame();
         startTimer();
         WatchUi.requestUpdate();
@@ -126,6 +130,7 @@ class DeepLineView extends WatchUi.View {
     }
 
     function onTimer() as Void {
+        _animationTick = (_animationTick + 1) % 24;
         if (_feedbackTicks > 0) {
             _feedbackTicks -= 1;
             if (_feedbackTicks == 0) {
@@ -189,31 +194,75 @@ class DeepLineView extends WatchUi.View {
         dc.setColor(COLOR_ABYSS, COLOR_ABYSS);
         dc.clear();
 
-        dc.setColor(COLOR_DEEP, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(0, 0, width, height * 78 / 100);
-        dc.setColor(COLOR_MID, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(0, 0, width, height * 55 / 100);
-        dc.setColor(COLOR_SHALLOW, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(0, 0, width, height * 32 / 100);
-        dc.setColor(COLOR_SURFACE, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(0, 0, width, height * 13 / 100);
+        if (isAmoled()) {
+            // Ten narrow steps read as a soft gradient at AMOLED density.
+            dc.setColor(COLOR_SURFACE_HIGH, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, 0, width, height * 10 / 100);
+            dc.setColor(COLOR_SURFACE, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 10 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_AQUA, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 20 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_SHALLOW_HIGH, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 30 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_SHALLOW, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 40 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_MID_HIGH, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 50 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_MID, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 60 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_DEEP_HIGH, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 70 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_DEEP, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 80 / 100, width, height * 10 / 100);
+            dc.setColor(COLOR_ABYSS_HIGH, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 90 / 100, width, height * 10 / 100);
+        } else {
+            // Equal green/blue channels avoid royal-blue quantization on 64-color MIP.
+            dc.setColor(COLOR_MIP_SURFACE, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, 0, width, height * 16 / 100);
+            dc.setColor(COLOR_MIP_LIGHT, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 16 / 100, width, height * 18 / 100);
+            dc.setColor(COLOR_MIP_MID, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 34 / 100, width, height * 22 / 100);
+            dc.setColor(COLOR_MIP_DEEP, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 56 / 100, width, height * 24 / 100);
+            dc.setColor(COLOR_MIP_ABYSS, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, height * 80 / 100, width, height * 20 / 100);
+        }
 
-        // Broad rays and drifting particles give depth without expensive textures.
-        dc.setColor(COLOR_SHALLOW, Graphics.COLOR_TRANSPARENT);
+        var phase = _animationTick % 8;
+        var sway = 0;
+        if (phase == 1 || phase == 7) { sway = scaled(1); }
+        if (phase == 2 || phase == 6) { sway = scaled(2); }
+        if (phase == 3 || phase == 5) { sway = scaled(3); }
+        if (phase == 4) { sway = scaled(4); }
+
+        // Caustic rays breathe sideways while particles drift upward.
+        dc.setColor(isAmoled() ? COLOR_SHALLOW_HIGH : COLOR_MIP_LIGHT,
+            Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(1));
-        dc.drawLine(width * 18 / 100, 0, width * 34 / 100, height * 48 / 100);
-        dc.drawLine(width * 80 / 100, 0, width * 64 / 100, height * 42 / 100);
-        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
-        dc.fillCircle(width * 18 / 100, height * 38 / 100, scaled(1));
-        dc.fillCircle(width * 78 / 100, height * 47 / 100, scaled(1));
-        dc.fillCircle(width * 28 / 100, height * 67 / 100, scaled(1));
-        dc.fillCircle(width * 83 / 100, height * 73 / 100, scaled(1));
-        dc.fillCircle(width * 12 / 100, height * 84 / 100, scaled(1));
+        dc.drawLine(width * 17 / 100, 0, width * 34 / 100 + sway, height * 51 / 100);
+        dc.drawLine(width * 82 / 100, 0, width * 64 / 100 - sway, height * 45 / 100);
 
-        dc.setColor(COLOR_SURFACE, Graphics.COLOR_TRANSPARENT);
-        dc.drawLine(0, height * 32 / 100, width, height * 32 / 100);
-        dc.setColor(COLOR_MID, Graphics.COLOR_TRANSPARENT);
-        dc.drawLine(0, height * 55 / 100, width, height * 55 / 100);
+        var drift = (_animationTick % 20) * height / 400;
+        var particleTop = height * 14 / 100;
+        var particleRange = height * 74 / 100;
+        var y1 = height * 38 / 100 - drift;
+        var y2 = height * 48 / 100 - drift;
+        var y3 = height * 66 / 100 - drift;
+        var y4 = height * 75 / 100 - drift;
+        var y5 = height * 85 / 100 - drift;
+        if (y1 < particleTop) { y1 += particleRange; }
+        if (y2 < particleTop) { y2 += particleRange; }
+        if (y3 < particleTop) { y3 += particleRange; }
+        if (y4 < particleTop) { y4 += particleRange; }
+        if (y5 < particleTop) { y5 += particleRange; }
+        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.fillCircle(width * 18 / 100 + sway, y1, scaled(1));
+        dc.fillCircle(width * 78 / 100 - sway, y2, scaled(1));
+        dc.fillCircle(width * 28 / 100, y3, scaled(1));
+        dc.fillCircle(width * 83 / 100, y4, scaled(1));
+        dc.fillCircle(width * 12 / 100, y5, scaled(1));
     }
 
     private function drawMenu(dc as Graphics.Dc) as Void {
@@ -232,7 +281,7 @@ class DeepLineView extends WatchUi.View {
         dc.drawText(cx, height * 47 / 100, Graphics.FONT_XTINY, "ONE BREATH · ONE LINE",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        drawDiver(dc, cx, height * 66 / 100, true);
+        drawDiver(dc, cx - scaled(27), height * 66 / 100, true);
         drawActionPill(dc, cx, height * 88 / 100, "TAP / START", COLOR_ACCENT);
     }
 
@@ -246,9 +295,10 @@ class DeepLineView extends WatchUi.View {
             (state == DiveConstants.STATE_PAUSED && _model.getCueKind() == DiveConstants.CUE_EQUALIZE);
 
         drawWorld(dc, cx, cy);
-        var diverX = state == DiveConstants.STATE_TURNING ? cx - scaled(19) : cx;
+        var diverX = state == DiveConstants.STATE_TURNING ?
+            cx - scaled(38) : cx - scaled(28);
         drawDiver(dc, diverX, cy, descending);
-        drawCue(dc, cx, cy);
+        drawCue(dc, diverX, cy);
         drawHud(dc);
         drawFeedback(dc, cx, cy);
     }
@@ -303,16 +353,22 @@ class DeepLineView extends WatchUi.View {
         var waveWidth = width * 52 / 100;
         var waveLeft = cx - (waveWidth / 2);
         var segment = waveWidth / 6;
+        var wavePhase = (_animationTick / 2) % 2;
         for (var index = 0; index < 6; index += 1) {
-            var waveY = y + ((index % 2 == 0) ? -scaled(1) : scaled(1));
-            var nextY = y + ((index % 2 == 0) ? scaled(1) : -scaled(1));
+            var high = (index + wavePhase) % 2 == 0;
+            var waveY = y + (high ? -scaled(1) : scaled(1));
+            var nextY = y + (high ? scaled(1) : -scaled(1));
             dc.drawLine(waveLeft + (index * segment), waveY,
                 waveLeft + ((index + 1) * segment), nextY);
         }
 
         var buoy = isAmoled() ? _buoyAmoled : _buoyMip;
+        var buoyPhase = (_animationTick / 3) % 4;
+        var buoyBob = 0;
+        if (buoyPhase == 1) { buoyBob = -scaled(1); }
+        if (buoyPhase == 3) { buoyBob = scaled(1); }
         dc.drawBitmap(cx - (buoy.getWidth() / 2),
-            y - (buoy.getHeight() * 64 / 100), buoy);
+            y - (buoy.getHeight() * 64 / 100) + buoyBob, buoy);
         dc.setColor(COLOR_LINE, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(1));
         dc.drawLine(cx, y, cx, y + scaled(16));
@@ -320,17 +376,32 @@ class DeepLineView extends WatchUi.View {
 
     private function drawDiver(dc as Graphics.Dc, x as Lang.Number, y as Lang.Number,
             headDown as Lang.Boolean) as Void {
-        var pose = headDown ? 0 : 1;
+        var frames = headDown ? _descentFrames : _ascentFrames;
         if (_model.getCueKind() == DiveConstants.CUE_EQUALIZE) {
-            pose = 2;
+            frames = _equalizeFrames;
         }
         if (_model.getState() == DiveConstants.STATE_TURNING ||
                 _model.getCueKind() == DiveConstants.CUE_TAG) {
-            pose = 3;
+            frames = _turnFrames;
         }
-        var divers = isAmoled() ? _diversAmoled : _diversMip;
-        var diver = divers[pose];
-        dc.drawBitmap(x - (diver.getWidth() / 2), y - (diver.getHeight() / 2), diver);
+        if (frames.size() == 0) {
+            return;
+        }
+
+        var frameIndex = (_animationTick / 2) % 4;
+        if (frames.size() == 2) {
+            frameIndex = (_animationTick / 3) % 2;
+        } else if (frameIndex == 3) {
+            frameIndex = 1;
+        }
+
+        var bobPhase = (_animationTick / 3) % 4;
+        var bob = 0;
+        if (bobPhase == 1) { bob = -scaled(1); }
+        if (bobPhase == 3) { bob = scaled(1); }
+        var diver = frames[frameIndex];
+        dc.drawBitmap(x - (diver.getWidth() / 2),
+            y - (diver.getHeight() / 2) + bob, diver);
     }
 
     private function drawCue(dc as Graphics.Dc, cx as Lang.Number, cy as Lang.Number) as Void {
@@ -354,7 +425,7 @@ class DeepLineView extends WatchUi.View {
         }
 
         var label = cueLabel(cue);
-        drawActionPill(dc, cx, cy + scaled(50), label, COLOR_TEXT);
+        drawActionPill(dc, _screenWidth / 2, cy + scaled(50), label, COLOR_TEXT);
     }
 
     private function drawHud(dc as Graphics.Dc) as Void {
@@ -457,7 +528,11 @@ class DeepLineView extends WatchUi.View {
 
     private function drawTag(dc as Graphics.Dc, x as Lang.Number, y as Lang.Number) as Void {
         var tag = isAmoled() ? _tagAmoled : _tagMip;
-        dc.drawBitmap(x - (tag.getWidth() / 2),
+        var tagPhase = (_animationTick / 3) % 4;
+        var tagSway = 0;
+        if (tagPhase == 1) { tagSway = -scaled(1); }
+        if (tagPhase == 3) { tagSway = scaled(1); }
+        dc.drawBitmap(x - (tag.getWidth() / 2) + tagSway,
             y - (tag.getHeight() * 72 / 100), tag);
     }
 
@@ -506,6 +581,58 @@ class DeepLineView extends WatchUi.View {
 
     private function scaled(value as Lang.Number) as Lang.Number {
         return value * _screenWidth / REFERENCE_WIDTH;
+    }
+
+    private function loadDiverFrames() as Void {
+        var amoled = isAmoled();
+        if (_framesLoaded && _loadedAmoled == amoled) {
+            return;
+        }
+
+        if (amoled) {
+            _descentFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverDescend0Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDescend1Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDescend2Amoled) as WatchUi.BitmapResource
+            ];
+            _ascentFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverAscend0Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverAscend1Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverAscend2Amoled) as WatchUi.BitmapResource
+            ];
+            _equalizeFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverEqualize0Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverEqualize1Amoled) as WatchUi.BitmapResource
+            ];
+            _turnFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverTurn0Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverTurn1Amoled) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverTurn2Amoled) as WatchUi.BitmapResource
+            ];
+        } else {
+            _descentFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverDescend0Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDescend1Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverDescend2Mip) as WatchUi.BitmapResource
+            ];
+            _ascentFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverAscend0Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverAscend1Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverAscend2Mip) as WatchUi.BitmapResource
+            ];
+            _equalizeFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverEqualize0Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverEqualize1Mip) as WatchUi.BitmapResource
+            ];
+            _turnFrames = [
+                WatchUi.loadResource($.Rez.Drawables.DiverTurn0Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverTurn1Mip) as WatchUi.BitmapResource,
+                WatchUi.loadResource($.Rez.Drawables.DiverTurn2Mip) as WatchUi.BitmapResource
+            ];
+        }
+
+        _loadedAmoled = amoled;
+        _framesLoaded = true;
     }
 
     private function isAmoled() as Lang.Boolean {

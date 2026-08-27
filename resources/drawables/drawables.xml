@@ -1,13 +1,27 @@
 <drawables>
     <bitmap id="LauncherIcon" filename="launcher_icon.svg"/>
-    <bitmap id="DiverDescendMip" filename="generated/diver_descend_mip.png"/>
-    <bitmap id="DiverAscendMip" filename="generated/diver_ascend_mip.png"/>
-    <bitmap id="DiverEqualizeMip" filename="generated/diver_equalize_mip.png"/>
-    <bitmap id="DiverTurnMip" filename="generated/diver_turn_mip.png"/>
-    <bitmap id="DiverDescendAmoled" filename="generated/diver_descend_amoled.png"/>
-    <bitmap id="DiverAscendAmoled" filename="generated/diver_ascend_amoled.png"/>
-    <bitmap id="DiverEqualizeAmoled" filename="generated/diver_equalize_amoled.png"/>
-    <bitmap id="DiverTurnAmoled" filename="generated/diver_turn_amoled.png"/>
+    <bitmap id="DiverDescend0Mip" filename="generated/diver_descend_mip.png"/>
+    <bitmap id="DiverDescend1Mip" filename="generated/diver_descend_1_mip.png"/>
+    <bitmap id="DiverDescend2Mip" filename="generated/diver_descend_2_mip.png"/>
+    <bitmap id="DiverAscend0Mip" filename="generated/diver_ascend_mip.png"/>
+    <bitmap id="DiverAscend1Mip" filename="generated/diver_ascend_1_mip.png"/>
+    <bitmap id="DiverAscend2Mip" filename="generated/diver_ascend_2_mip.png"/>
+    <bitmap id="DiverEqualize0Mip" filename="generated/diver_equalize_mip.png"/>
+    <bitmap id="DiverEqualize1Mip" filename="generated/diver_equalize_1_mip.png"/>
+    <bitmap id="DiverTurn0Mip" filename="generated/diver_turn_mip.png"/>
+    <bitmap id="DiverTurn1Mip" filename="generated/diver_turn_1_mip.png"/>
+    <bitmap id="DiverTurn2Mip" filename="generated/diver_turn_2_mip.png"/>
+    <bitmap id="DiverDescend0Amoled" filename="generated/diver_descend_amoled.png"/>
+    <bitmap id="DiverDescend1Amoled" filename="generated/diver_descend_1_amoled.png"/>
+    <bitmap id="DiverDescend2Amoled" filename="generated/diver_descend_2_amoled.png"/>
+    <bitmap id="DiverAscend0Amoled" filename="generated/diver_ascend_amoled.png"/>
+    <bitmap id="DiverAscend1Amoled" filename="generated/diver_ascend_1_amoled.png"/>
+    <bitmap id="DiverAscend2Amoled" filename="generated/diver_ascend_2_amoled.png"/>
+    <bitmap id="DiverEqualize0Amoled" filename="generated/diver_equalize_amoled.png"/>
+    <bitmap id="DiverEqualize1Amoled" filename="generated/diver_equalize_1_amoled.png"/>
+    <bitmap id="DiverTurn0Amoled" filename="generated/diver_turn_amoled.png"/>
+    <bitmap id="DiverTurn1Amoled" filename="generated/diver_turn_1_amoled.png"/>
+    <bitmap id="DiverTurn2Amoled" filename="generated/diver_turn_2_amoled.png"/>
     <bitmap id="BuoyMip" filename="generated/buoy_mip.png"/>
     <bitmap id="BuoyAmoled" filename="generated/buoy_amoled.png"/>
     <bitmap id="TagMip" filename="generated/tag_mip.png"/>

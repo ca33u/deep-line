@@ -4,8 +4,11 @@ The two source sheets in this directory were generated for Deep Line with OpenAI
 
 - `freediver-sprite-sheet.png`: one consistent freediver in descent, ascent, equalization and bottom-turn poses.
 - `dive-props-sheet.png`: a surface buoy and an underwater tag plate.
+- `freediver-*-animation-sheet.png`: loopable frame strips for descent, ascent, equalization and the bottom turn.
 
 The production PNGs under `resources/drawables/generated/` are cropped and downscaled from these sheets. They have separate compact MIP and larger AMOLED variants so the game does not scale large bitmaps at runtime.
+
+Runtime animation uses three descent frames, three ascent frames, two equalization frames and three turn frames. `scripts/build-art-assets.sh` rebuilds both density sets from the source strips. Only the density for the current display is loaded into memory.
 
 ## Art direction
 
