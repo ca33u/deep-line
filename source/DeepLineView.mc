@@ -194,56 +194,32 @@ class DeepLineView extends WatchUi.View {
         dc.setColor(COLOR_ABYSS, COLOR_ABYSS);
         dc.clear();
 
-        if (isAmoled()) {
-            // Ten narrow steps read as a soft gradient at AMOLED density.
-            dc.setColor(COLOR_SURFACE_HIGH, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, 0, width, height * 10 / 100);
-            dc.setColor(COLOR_SURFACE, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 10 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_AQUA, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 20 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_SHALLOW_HIGH, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 30 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_SHALLOW, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 40 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_MID_HIGH, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 50 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_MID, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 60 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_DEEP_HIGH, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 70 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_DEEP, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 80 / 100, width, height * 10 / 100);
-            dc.setColor(COLOR_ABYSS_HIGH, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 90 / 100, width, height * 10 / 100);
-        } else {
-            // Equal green/blue channels avoid royal-blue quantization on 64-color MIP.
-            dc.setColor(COLOR_MIP_SURFACE, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, 0, width, height * 16 / 100);
-            dc.setColor(COLOR_MIP_LIGHT, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 16 / 100, width, height * 18 / 100);
-            dc.setColor(COLOR_MIP_MID, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 34 / 100, width, height * 22 / 100);
-            dc.setColor(COLOR_MIP_DEEP, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 56 / 100, width, height * 24 / 100);
-            dc.setColor(COLOR_MIP_ABYSS, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, height * 80 / 100, width, height * 20 / 100);
+        var pixelsPerTenMeters = height * 82 / 100;
+        var surfaceY = height * 22 / 100;
+        var state = _model.getState();
+        if (state != DiveConstants.STATE_MENU && state != DiveConstants.STATE_RESULT) {
+            surfaceY = (height / 2) -
+                (_model.getDepthCm() * pixelsPerTenMeters / 1000);
+        }
+
+        var stripCount = isAmoled() ? 20 : 10;
+        for (var row = 0; row < stripCount; row += 1) {
+            var stripTop = row * height / stripCount;
+            var stripBottom = (row + 1) * height / stripCount;
+            var sampleY = (stripTop + stripBottom) / 2;
+            var depthAtStrip = (sampleY - surfaceY) * 1000 / pixelsPerTenMeters;
+            var waterColor = isAmoled() ? amoledOceanColor(depthAtStrip) :
+                mipOceanColor(depthAtStrip);
+            dc.setColor(waterColor, Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, stripTop, width, stripBottom - stripTop + 1);
         }
 
         var phase = _animationTick % 8;
         var sway = 0;
-        if (phase == 1 || phase == 7) { sway = scaled(1); }
-        if (phase == 2 || phase == 6) { sway = scaled(2); }
-        if (phase == 3 || phase == 5) { sway = scaled(3); }
-        if (phase == 4) { sway = scaled(4); }
+        if (phase == 2 || phase == 6) { sway = scaled(1); }
+        if (phase == 3 || phase == 4 || phase == 5) { sway = scaled(2); }
 
-        // Caustic rays breathe sideways while particles drift upward.
-        dc.setColor(isAmoled() ? COLOR_SHALLOW_HIGH : COLOR_MIP_LIGHT,
-            Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(scaled(1));
-        dc.drawLine(width * 17 / 100, 0, width * 34 / 100 + sway, height * 51 / 100);
-        dc.drawLine(width * 82 / 100, 0, width * 64 / 100 - sway, height * 45 / 100);
-
+        // Tiny particles keep the water alive without prominent diagonal rays.
         var drift = (_animationTick % 20) * height / 400;
         var particleTop = height * 14 / 100;
         var particleRange = height * 74 / 100;
@@ -263,6 +239,51 @@ class DeepLineView extends WatchUi.View {
         dc.fillCircle(width * 28 / 100, y3, scaled(1));
         dc.fillCircle(width * 83 / 100, y4, scaled(1));
         dc.fillCircle(width * 12 / 100, y5, scaled(1));
+    }
+
+    private function amoledOceanColor(depthCm as Lang.Number) as Lang.Number {
+        if (depthCm <= 0) { return COLOR_SURFACE_HIGH; }
+        if (depthCm < 250) {
+            return mixColor(COLOR_SURFACE_HIGH, COLOR_AQUA, depthCm * 100 / 250);
+        }
+        if (depthCm < 550) {
+            return mixColor(COLOR_AQUA, COLOR_SHALLOW, (depthCm - 250) * 100 / 300);
+        }
+        if (depthCm < 950) {
+            return mixColor(COLOR_SHALLOW, COLOR_MID, (depthCm - 550) * 100 / 400);
+        }
+        if (depthCm < 1450) {
+            return mixColor(COLOR_MID, COLOR_DEEP_HIGH, (depthCm - 950) * 100 / 500);
+        }
+        if (depthCm < 2100) {
+            return mixColor(COLOR_DEEP_HIGH, COLOR_ABYSS, (depthCm - 1450) * 100 / 650);
+        }
+        return COLOR_ABYSS;
+    }
+
+    private function mipOceanColor(depthCm as Lang.Number) as Lang.Number {
+        // The restricted palette keeps the gradient teal on 64-color MIP screens.
+        if (depthCm < 200) { return COLOR_MIP_SURFACE; }
+        if (depthCm < 500) { return COLOR_MIP_LIGHT; }
+        if (depthCm < 900) { return COLOR_MIP_MID; }
+        if (depthCm < 1450) { return COLOR_MIP_DEEP; }
+        return COLOR_MIP_ABYSS;
+    }
+
+    private function mixColor(fromColor as Lang.Number, toColor as Lang.Number,
+            amount as Lang.Number) as Lang.Number {
+        if (amount < 0) { amount = 0; }
+        if (amount > 100) { amount = 100; }
+        var fromR = (fromColor >> 16) & 0xFF;
+        var fromG = (fromColor >> 8) & 0xFF;
+        var fromB = fromColor & 0xFF;
+        var toR = (toColor >> 16) & 0xFF;
+        var toG = (toColor >> 8) & 0xFF;
+        var toB = toColor & 0xFF;
+        var red = fromR + ((toR - fromR) * amount / 100);
+        var green = fromG + ((toG - fromG) * amount / 100);
+        var blue = fromB + ((toB - fromB) * amount / 100);
+        return (red << 16) | (green << 8) | blue;
     }
 
     private function drawMenu(dc as Graphics.Dc) as Void {
@@ -298,7 +319,7 @@ class DeepLineView extends WatchUi.View {
         var diverX = state == DiveConstants.STATE_TURNING ?
             cx - scaled(38) : cx - scaled(28);
         drawDiver(dc, diverX, cy, descending);
-        drawCue(dc, diverX, cy);
+        drawCue(dc, cx, cy);
         drawHud(dc);
         drawFeedback(dc, cx, cy);
     }
@@ -348,6 +369,24 @@ class DeepLineView extends WatchUi.View {
     private function drawSurfaceAndBuoy(dc as Graphics.Dc, cx as Lang.Number,
             y as Lang.Number) as Void {
         var width = dc.getWidth();
+
+        // A bright cap above the wave and three shallow layers below it make the
+        // surface a real boundary that scrolls away as the diver goes deeper.
+        if (y > 0) {
+            dc.setColor(isAmoled() ? COLOR_SURFACE_HIGH : COLOR_MIP_SURFACE,
+                Graphics.COLOR_TRANSPARENT);
+            dc.fillRectangle(0, 0, width, y);
+        }
+        dc.setColor(isAmoled() ? COLOR_SURFACE : COLOR_MIP_SURFACE,
+            Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(0, y, width, scaled(3));
+        dc.setColor(isAmoled() ? COLOR_AQUA : COLOR_MIP_LIGHT,
+            Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(0, y + scaled(3), width, scaled(4));
+        dc.setColor(isAmoled() ? COLOR_SHALLOW_HIGH : COLOR_MIP_MID,
+            Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(0, y + scaled(7), width, scaled(5));
+
         dc.setColor(COLOR_FOAM, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(1));
         var waveWidth = width * 52 / 100;
@@ -388,8 +427,18 @@ class DeepLineView extends WatchUi.View {
             return;
         }
 
+        var cue = _model.getCueKind();
+        var gentleDescent = headDown && cue != DiveConstants.CUE_EQUALIZE &&
+            cue != DiveConstants.CUE_TAG &&
+            _model.getState() != DiveConstants.STATE_TURNING;
         var frameIndex = (_animationTick / 2) % 4;
-        if (frames.size() == 2) {
+        if (gentleDescent) {
+            // Half-speed fin movement with the neutral pose held between kicks.
+            var descentPhase = (_animationTick / 4) % 6;
+            frameIndex = 1;
+            if (descentPhase == 1) { frameIndex = 0; }
+            if (descentPhase == 4) { frameIndex = 2; }
+        } else if (frames.size() == 2) {
             frameIndex = (_animationTick / 3) % 2;
         } else if (frameIndex == 3) {
             frameIndex = 1;
@@ -397,8 +446,10 @@ class DeepLineView extends WatchUi.View {
 
         var bobPhase = (_animationTick / 3) % 4;
         var bob = 0;
-        if (bobPhase == 1) { bob = -scaled(1); }
-        if (bobPhase == 3) { bob = scaled(1); }
+        if (!gentleDescent) {
+            if (bobPhase == 1) { bob = -scaled(1); }
+            if (bobPhase == 3) { bob = scaled(1); }
+        }
         var diver = frames[frameIndex];
         dc.drawBitmap(x - (diver.getWidth() / 2),
             y - (diver.getHeight() / 2) + bob, diver);
@@ -411,21 +462,22 @@ class DeepLineView extends WatchUi.View {
         }
 
         if (cue == DiveConstants.CUE_EQUALIZE || cue == DiveConstants.CUE_STROKE) {
-            var movingRadius = scaled(45 - (_model.getCueAge() * 6));
-            if (movingRadius < scaled(15)) {
-                movingRadius = scaled(15);
+            var movingRadius = scaled(126 - (_model.getCueAge() * 11));
+            if (movingRadius < scaled(70)) {
+                movingRadius = scaled(70);
             }
             dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(scaled(1));
-            dc.drawCircle(cx, cy, scaled(22));
-            dc.drawCircle(cx, cy, scaled(27));
+            dc.drawCircle(cx, cy, scaled(70));
+            dc.drawCircle(cx, cy, scaled(74));
             dc.setColor(COLOR_ACCENT, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(scaled(2));
             dc.drawCircle(cx, cy, movingRadius);
         }
 
         var label = cueLabel(cue);
-        drawActionPill(dc, _screenWidth / 2, cy + scaled(50), label, COLOR_TEXT);
+        drawActionPill(dc, _screenWidth / 2, _screenHeight * 82 / 100,
+            label, COLOR_TEXT);
     }
 
     private function drawHud(dc as Graphics.Dc) as Void {
@@ -433,33 +485,38 @@ class DeepLineView extends WatchUi.View {
         var height = dc.getHeight();
         var depthMeters = _model.getDepthCm() / 100.0;
 
-        var badgeWidth = scaled(62);
-        var badgeHeight = scaled(22);
-        var badgeY = height * 7 / 100;
-        drawPillBackground(dc, width / 2, badgeY, badgeWidth, badgeHeight, COLOR_DEEP);
+        var hudY = height / 2;
+        var depthX = width * 82 / 100;
+        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(depthX, hudY - scaled(18), Graphics.FONT_XTINY, "DEPTH",
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(width / 2, badgeY, Graphics.FONT_SMALL,
-            depthMeters.format("%.1f") + "m",
+        dc.drawText(depthX, hudY + scaled(1), Graphics.FONT_MEDIUM,
+            depthMeters.format("%.1f"),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(depthX, hudY + scaled(20), Graphics.FONT_XTINY, "METERS",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
-        var barWidth = width * 48 / 100;
-        var barX = (width - barWidth) / 2;
-        var barY = height * 91 / 100;
-        var barHeight = scaled(7);
+        var radius = (width < height ? width : height) * 44 / 100;
         dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
-        dc.fillRectangle(barX, barY, barWidth, barHeight);
-        dc.fillCircle(barX, barY + (barHeight / 2), barHeight / 2);
-        dc.fillCircle(barX + barWidth, barY + (barHeight / 2), barHeight / 2);
-        var fillWidth = barWidth * _model.getFlow() / 100;
+        dc.setPenWidth(scaled(6));
+        dc.drawArc(width / 2, height / 2, radius,
+            Graphics.ARC_COUNTER_CLOCKWISE, 135, 225);
+
+        var flow = _model.getFlow();
         var flowColor = _model.getFlow() > 35 ? COLOR_GOOD : COLOR_BAD;
-        if (fillWidth > barHeight) {
-            dc.setColor(flowColor, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(barX, barY, fillWidth, barHeight);
-            dc.fillCircle(barX, barY + (barHeight / 2), barHeight / 2);
-            dc.fillCircle(barX + fillWidth, barY + (barHeight / 2), barHeight / 2);
-        }
+        var fillStart = 225 - (90 * flow / 100);
+        dc.setColor(flowColor, Graphics.COLOR_TRANSPARENT);
+        dc.drawArc(width / 2, height / 2, radius,
+            Graphics.ARC_COUNTER_CLOCKWISE, fillStart, 225);
+
+        var flowX = width * 17 / 100;
         dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(width / 2, barY - scaled(13), Graphics.FONT_XTINY, "FLOW",
+        dc.drawText(flowX, hudY - scaled(9), Graphics.FONT_XTINY, "FLOW",
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(flowX, hudY + scaled(9), Graphics.FONT_SMALL,
+            flow.format("%d"),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
