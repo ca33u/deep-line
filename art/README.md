@@ -1,10 +1,17 @@
 # Deep Line art sources
 
-The two source sheets in this directory were generated for Deep Line with OpenAI's built-in image generation on 2026-08-27.
+The raster source art in this directory was generated for Deep Line with
+OpenAI's built-in image generation on 2026-08-27.
 
-- `freediver-sprite-sheet.png`: one consistent freediver in descent, ascent, equalization and bottom-turn poses.
-- `dive-props-sheet.png`: a surface buoy and an underwater tag plate.
-- `freediver-*-animation-sheet.png`: loopable frame strips for descent, ascent, equalization and the bottom turn.
+- `freediver-*-animation-sheet.png`: the current loopable diver strips.
+- `freediver-duck-dive-middle.png` and `freediver-turn-middle.png`: corrected
+  standalone transition frames used instead of the rejected sheet poses.
+- `dive-props-sheet.png`: the editable master for the buoy and tag plate.
+- `fish-school*.png`, `green-turtle*.png`, and `orca*.png`: paired depth-life
+  frames. The second orca frame carries the raised-tail phase of its tail beat.
+
+The obsolete all-in-one `freediver-sprite-sheet.png` was removed after the
+separate animation strips fully replaced it.
 
 The production PNGs under `resources/drawables/generated/` are cropped and downscaled from these sheets. They have separate compact MIP and larger AMOLED variants so the game does not scale large bitmaps at runtime.
 
