@@ -11,10 +11,10 @@ struct TitleVariant {
 }
 
 let variants = [
-    TitleVariant(suffix: "mip", width: 214, height: 48,
-        fontSize: 48, kern: 0.8, shadowOffset: 1),
-    TitleVariant(suffix: "amoled", width: 300, height: 64,
-        fontSize: 66, kern: 1.2, shadowOffset: 2)
+    TitleVariant(suffix: "mip", width: 214, height: 60,
+        fontSize: 46, kern: 0.8, shadowOffset: 1),
+    TitleVariant(suffix: "amoled", width: 300, height: 80,
+        fontSize: 63, kern: 1.2, shadowOffset: 2)
 ]
 
 let outputDirectory = URL(fileURLWithPath: "resources/drawables/generated",
@@ -68,11 +68,6 @@ for variant in variants {
             .foregroundColor: NSColor(calibratedRed: 246 / 255,
                 green: 240 / 255, blue: 220 / 255, alpha: 1)
         ])
-    attributed.addAttribute(.foregroundColor,
-        value: NSColor(calibratedRed: 240 / 255, green: 214 / 255,
-            blue: 156 / 255, alpha: 1),
-        range: NSRange(location: 5, length: 4))
-
     let bounds = attributed.boundingRect(
         with: NSSize(width: CGFloat(variant.width), height: .greatestFiniteMagnitude),
         options: [.usesLineFragmentOrigin, .usesFontLeading])

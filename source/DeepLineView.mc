@@ -376,7 +376,7 @@ class DeepLineView extends WatchUi.View {
         var diverX = state == DiveConstants.STATE_TURNING ?
             cx - scaled(38) : cx - scaled(28);
         var diverY = state == DiveConstants.STATE_SURFACING ?
-            cy + scaled(36) : cy;
+            cy + scaled(52) : cy;
         drawDiver(dc, diverX, diverY, descending);
         drawCue(dc, cx, cy);
         if (state != DiveConstants.STATE_SURFACING) {
@@ -392,9 +392,6 @@ class DeepLineView extends WatchUi.View {
 
         drawDepthLife(dc, cx, cy, pixelsPerTenMeters, depth);
 
-        dc.setColor(COLOR_ABYSS, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(scaled(4));
-        dc.drawLine(cx + scaled(1), 0, cx + scaled(1), height);
         dc.setColor(COLOR_LINE, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(2));
         dc.drawLine(cx, 0, cx, height);
@@ -650,8 +647,9 @@ class DeepLineView extends WatchUi.View {
         }
 
         var label = cueLabel(cue);
-        drawActionPill(dc, _screenWidth / 2, _screenHeight * 78 / 100,
-            label, COLOR_TEXT);
+        if (_feedbackEvent == DiveConstants.EVENT_NONE) {
+            drawStatusText(dc, label, COLOR_TEXT);
+        }
     }
 
     private function turnTargetX(cue as Lang.Number) as Lang.Number {
@@ -712,10 +710,14 @@ class DeepLineView extends WatchUi.View {
                 _feedbackEvent == DiveConstants.EVENT_GLIDE_PENALTY) {
             color = COLOR_BAD;
         }
-        var feedbackY = _screenHeight * 90 / 100;
-        drawPillBackground(dc, cx, feedbackY, scaled(70), scaled(23), COLOR_DEEP);
+        drawStatusText(dc, label, color);
+    }
+
+    private function drawStatusText(dc as Graphics.Dc, label as Lang.String,
+            color as Lang.Number) as Void {
+        var statusY = _screenHeight * 82 / 100;
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, feedbackY, Graphics.FONT_SMALL, label,
+        dc.drawText(_screenWidth / 2, statusY, Graphics.FONT_XTINY, label,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

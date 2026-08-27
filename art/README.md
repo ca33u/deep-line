@@ -17,8 +17,9 @@ The production PNGs under `resources/drawables/generated/` are cropped and downs
 
 The `DEEP LINE` menu wordmark is generated locally by
 `scripts/build-title-assets.swift` with DIN Condensed Bold. It uses cream for
-`DEEP`, rope-gold for `LINE`, and a subtle navy edge/shadow for legibility over
-the animated ocean. The exact typography is reproducible and does not depend on
+both words plus a subtle navy edge/shadow for legibility over the animated
+ocean. The larger transparent canvas keeps the font edge and shadow clear of
+the bitmap bounds. The exact typography is reproducible and does not depend on
 Garmin's limited runtime font set.
 
 Runtime animation uses three descent frames, three ascent frames, two equalization frames and three turn frames. `scripts/build-art-assets.sh` rebuilds both density sets from the source strips. Only the density for the current display is loaded into memory.

@@ -57,7 +57,7 @@ render_frame "$turn" "512:1024:1024:0" "52:78" "72:108" "diver_turn_2"
 
 render_frame "$duck" "820:360:0:500" "92:44" "128:62" "diver_duck"
 render_frame "$duck_middle" "900:1080:150:80" "64:78" "90:108" "diver_duck_1"
-render_frame "$duck" "310:900:1200:40" "52:78" "72:108" "diver_duck_2"
+render_frame "$duck" "260:900:1250:40" "52:78" "72:108" "diver_duck_2"
 
 render_frame "$fish" "1050:650:110:300" "64:38" "90:54" "fish_school"
 render_frame "$fish_1" "1050:650:110:300" "64:38" "90:54" "fish_school_1"
