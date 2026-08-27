@@ -21,10 +21,10 @@ class DeepLineView extends WatchUi.View {
     const COLOR_SURFACE = 0x18A6A6;
     const COLOR_SURFACE_HIGH = 0x1DB8B0;
     const COLOR_MIP_SURFACE = 0x00AAAA;
-    const COLOR_MIP_LIGHT = 0x008888;
+    const COLOR_MIP_LIGHT = 0x0055AA;
     const COLOR_MIP_MID = 0x005555;
-    const COLOR_MIP_DEEP = 0x003333;
-    const COLOR_MIP_ABYSS = 0x001111;
+    const COLOR_MIP_DEEP = 0x000055;
+    const COLOR_MIP_ABYSS = 0x000000;
     const COLOR_FOAM = 0xE7F2E9;
     const COLOR_LINE = 0xF0D69C;
     const COLOR_ACCENT = 0xFF6B3D;
@@ -347,23 +347,28 @@ class DeepLineView extends WatchUi.View {
         var pixelsPerTenMeters = height * 82 / 100;
         var surfaceY = height * 22 / 100;
         var state = _model.getState();
-        if (state != DiveConstants.STATE_MENU &&
-                state != DiveConstants.STATE_LEVEL_SELECT &&
-                state != DiveConstants.STATE_RESULT) {
+        var staticScreen = state == DiveConstants.STATE_MENU ||
+            state == DiveConstants.STATE_LEVEL_SELECT ||
+            state == DiveConstants.STATE_RESULT;
+        if (!staticScreen) {
             surfaceY = (height / 2) -
                 (_model.getDepthCm() * pixelsPerTenMeters / 1000);
         }
 
-        var stripCount = isAmoled() ? 20 : 10;
-        for (var row = 0; row < stripCount; row += 1) {
-            var stripTop = row * height / stripCount;
-            var stripBottom = (row + 1) * height / stripCount;
-            var sampleY = (stripTop + stripBottom) / 2;
-            var depthAtStrip = (sampleY - surfaceY) * 1000 / pixelsPerTenMeters;
-            var waterColor = isAmoled() ? amoledOceanColor(depthAtStrip) :
-                mipOceanColor(depthAtStrip);
-            dc.setColor(waterColor, Graphics.COLOR_TRANSPARENT);
-            dc.fillRectangle(0, stripTop, width, stripBottom - stripTop + 1);
+        if (!isAmoled() && staticScreen) {
+            drawStaticMipOcean(dc, width, height);
+        } else {
+            var stripCount = isAmoled() ? 20 : 10;
+            for (var row = 0; row < stripCount; row += 1) {
+                var stripTop = row * height / stripCount;
+                var stripBottom = (row + 1) * height / stripCount;
+                var sampleY = (stripTop + stripBottom) / 2;
+                var depthAtStrip = (sampleY - surfaceY) * 1000 / pixelsPerTenMeters;
+                var waterColor = isAmoled() ? amoledOceanColor(depthAtStrip) :
+                    mipOceanColor(depthAtStrip);
+                dc.setColor(waterColor, Graphics.COLOR_TRANSPARENT);
+                dc.fillRectangle(0, stripTop, width, stripBottom - stripTop + 1);
+            }
         }
 
         var phase = _animationTick % 8;
@@ -391,6 +396,18 @@ class DeepLineView extends WatchUi.View {
         dc.fillCircle(width * 28 / 100, y3, scaled(1));
         dc.fillCircle(width * 83 / 100, y4, scaled(1));
         dc.fillCircle(width * 12 / 100, y5, scaled(1));
+    }
+
+    private function drawStaticMipOcean(dc as Graphics.Dc, width as Lang.Number,
+            height as Lang.Number) as Void {
+        var territory = _model.getTerritory();
+        var background = COLOR_MIP_MID;
+        if (territory == 1) { background = 0x0055AA; }
+        if (territory == 2) { background = 0x00AAAA; }
+        if (territory == 3) { background = 0x000055; }
+        if (territory == 4) { background = 0x55AAAA; }
+        dc.setColor(background, Graphics.COLOR_TRANSPARENT);
+        dc.fillRectangle(0, 0, width, height);
     }
 
     private function amoledOceanColor(depthCm as Lang.Number) as Lang.Number {
@@ -502,33 +519,29 @@ class DeepLineView extends WatchUi.View {
 
     private function biomeMipLight() as Lang.Number {
         var territory = _model.getTerritory();
-        if (territory == 1) { return 0x008855; }
-        if (territory == 2) { return 0x0088AA; }
-        if (territory == 3) { return 0x0088AA; }
-        if (territory == 4) { return 0x5588AA; }
+        if (territory == 1) { return 0x005555; }
+        if (territory == 2) { return 0x0055AA; }
+        if (territory == 3) { return 0x0055AA; }
+        if (territory == 4) { return 0x55AAAA; }
         return COLOR_MIP_LIGHT;
     }
 
     private function biomeMipMid() as Lang.Number {
         var territory = _model.getTerritory();
-        if (territory == 1) { return 0x005544; }
-        if (territory == 2) { return 0x005588; }
-        if (territory == 3) { return 0x005588; }
-        if (territory == 4) { return 0x335577; }
+        if (territory == 1) { return 0x005555; }
+        if (territory == 2) { return 0x005555; }
+        if (territory == 3) { return 0x005555; }
+        if (territory == 4) { return 0x5555AA; }
         return COLOR_MIP_MID;
     }
 
     private function biomeMipDeep() as Lang.Number {
-        var territory = _model.getTerritory();
-        if (territory == 1) { return 0x003333; }
-        if (territory == 2) { return 0x003355; }
-        if (territory == 3) { return 0x003355; }
-        if (territory == 4) { return 0x223344; }
+        if (_model.getTerritory() == 4) { return 0x005555; }
         return COLOR_MIP_DEEP;
     }
 
     private function biomeMipAbyss() as Lang.Number {
-        return _model.getTerritory() == 4 ? 0x112233 : COLOR_MIP_ABYSS;
+        return _model.getTerritory() == 4 ? 0x000055 : COLOR_MIP_ABYSS;
     }
 
     private function mixColor(fromColor as Lang.Number, toColor as Lang.Number,
