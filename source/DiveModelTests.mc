@@ -73,7 +73,8 @@ function testMissedEqualizationCostsFlow(logger as Test.Logger) as Lang.Boolean 
         logger.error("expired equalization did not miss");
         return false;
     }
-    return model.getFlow() == 88 && model.getMissCount() == 1;
+    return model.getFlow() == DiveConstants.MAX_FLOW -
+        Campaign.missCost(model.getSelectedLevel()) && model.getMissCount() == 1;
 }
 
 (:test)
@@ -177,5 +178,78 @@ function testFinishedRunTracksBestScore(logger as Test.Logger) as Lang.Boolean {
     }
 
     logger.error("could not finish scoring run");
+    return false;
+}
+
+(:test)
+function testCampaignUsesRealDepthLandmarks(logger as Test.Logger) as Lang.Boolean {
+    if (Campaign.LEVEL_COUNT != 15 || Campaign.depthCm(0) != 1000 ||
+            Campaign.depthCm(2) != 2000 || Campaign.depthCm(12) != 13600 ||
+            Campaign.depthCm(14) != 15000) {
+        logger.error("campaign depth ladder changed unexpectedly");
+        return false;
+    }
+    return Campaign.territory(0) == 0 && Campaign.territory(14) == 4;
+}
+
+(:test)
+function testCampaignSelectionClampsAndConfiguresDive(logger as Test.Logger) as Lang.Boolean {
+    var model = new DiveModel();
+    model.openCampaign();
+    model.moveSelection(-Campaign.LEVEL_COUNT);
+    if (model.getState() != DiveConstants.STATE_LEVEL_SELECT ||
+            model.getSelectedLevel() != 0 || model.getTargetDepthCm() != 1000) {
+        logger.error("campaign selection did not clamp to first dive");
+        return false;
+    }
+    model.startGame();
+    return model.getState() == DiveConstants.STATE_DUCK_DIVE &&
+        model.getTargetDepthCm() == 1000;
+}
+
+(:test)
+function testCampaignScalesDeepDivePressure(logger as Test.Logger) as Lang.Boolean {
+    return Campaign.descentSpeedCm(14) > Campaign.descentSpeedCm(0) &&
+        Campaign.ascentSpeedCm(14) > Campaign.ascentSpeedCm(0) &&
+        Campaign.equalizeCount(14) > Campaign.equalizeCount(0) &&
+        Campaign.strokeCount(14) > Campaign.strokeCount(0) &&
+        Campaign.cueDeadline(14) < Campaign.cueDeadline(0) &&
+        Campaign.missCost(14) > Campaign.missCost(0);
+}
+
+(:test)
+function testSuccessfulCampaignDiveAwardsAndUnlocks(logger as Test.Logger) as Lang.Boolean {
+    var model = new DiveModel();
+    var selected = model.getSelectedLevel();
+    var unlocked = model.getUnlockedLevel();
+    model.startGame();
+
+    for (var tick = 0; tick < 1200; tick += 1) {
+        var cue = model.getCueKind();
+        if ((cue == DiveConstants.CUE_EQUALIZE || cue == DiveConstants.CUE_STROKE) &&
+                model.getCueAge() == 2) {
+            model.action();
+        } else if (model.getState() == DiveConstants.STATE_TURNING) {
+            if (cue == DiveConstants.CUE_TAG) {
+                model.action();
+            } else if (cue == DiveConstants.CUE_TURN && model.getCueAge() == 2) {
+                model.action();
+            }
+        }
+
+        if (model.advance() == DiveConstants.EVENT_SURFACED) {
+            if (model.getRunMedal() < 1 ||
+                    model.getSelectedBestScore() < model.getScore()) {
+                logger.error("successful campaign dive did not save its award");
+                return false;
+            }
+            if (selected == unlocked && unlocked < Campaign.LEVEL_COUNT - 1) {
+                return model.getUnlockedLevel() == unlocked + 1;
+            }
+            return model.getUnlockedLevel() == unlocked;
+        }
+    }
+
+    logger.error("successful campaign dive did not finish");
     return false;
 }

@@ -46,4 +46,14 @@
     <bitmap id="OrcaAmoled" filename="generated/orca_amoled.png"/>
     <bitmap id="Orca1Mip" filename="generated/orca_1_mip.png"/>
     <bitmap id="Orca1Amoled" filename="generated/orca_1_amoled.png"/>
+    <bitmap id="SeaLionMip" filename="generated/sea_lion_mip.png"/>
+    <bitmap id="SeaLionAmoled" filename="generated/sea_lion_amoled.png"/>
+    <bitmap id="ThresherSharkMip" filename="generated/thresher_shark_mip.png"/>
+    <bitmap id="ThresherSharkAmoled" filename="generated/thresher_shark_amoled.png"/>
+    <bitmap id="MantaRayMip" filename="generated/manta_ray_mip.png"/>
+    <bitmap id="MantaRayAmoled" filename="generated/manta_ray_amoled.png"/>
+    <bitmap id="HammerheadSharkMip" filename="generated/hammerhead_shark_mip.png"/>
+    <bitmap id="HammerheadSharkAmoled" filename="generated/hammerhead_shark_amoled.png"/>
+    <bitmap id="SwimmingPenguinMip" filename="generated/swimming_penguin_mip.png"/>
+    <bitmap id="SwimmingPenguinAmoled" filename="generated/swimming_penguin_amoled.png"/>
 </drawables>

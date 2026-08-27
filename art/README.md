@@ -9,9 +9,16 @@ OpenAI's built-in image generation on 2026-08-27.
 - `dive-props-sheet.png`: the editable master for the buoy and tag plate.
 - `fish-school*.png`, `green-turtle*.png`, and `orca*.png`: paired depth-life
   frames. The second orca frame carries the raised-tail phase of its tail beat.
+- `sea-lion.png`, `thresher-shark.png`, `manta-ray.png`,
+  `hammerhead-shark.png`, and `swimming-penguin.png`: territory-specific wildlife
+  silhouettes for Mexico, the Philippines, the Red Sea, the Bahamas, and
+  Antarctica. These use whole-body drift and subtle bobbing at runtime.
 
 The obsolete all-in-one `freediver-sprite-sheet.png` was removed after the
 separate animation strips fully replaced it.
+
+The reproducible prompt spec for territory wildlife is documented in
+`territory-wildlife-prompts.md`.
 
 The production PNGs under `resources/drawables/generated/` are cropped and downscaled from these sheets. They have separate compact MIP and larger AMOLED variants so the game does not scale large bitmaps at runtime.
 

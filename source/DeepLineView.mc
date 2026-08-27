@@ -66,6 +66,16 @@ class DeepLineView extends WatchUi.View {
     private var _orcaAmoled as WatchUi.BitmapResource;
     private var _orca1Mip as WatchUi.BitmapResource;
     private var _orca1Amoled as WatchUi.BitmapResource;
+    private var _seaLionMip as WatchUi.BitmapResource;
+    private var _seaLionAmoled as WatchUi.BitmapResource;
+    private var _thresherMip as WatchUi.BitmapResource;
+    private var _thresherAmoled as WatchUi.BitmapResource;
+    private var _mantaMip as WatchUi.BitmapResource;
+    private var _mantaAmoled as WatchUi.BitmapResource;
+    private var _hammerheadMip as WatchUi.BitmapResource;
+    private var _hammerheadAmoled as WatchUi.BitmapResource;
+    private var _penguinMip as WatchUi.BitmapResource;
+    private var _penguinAmoled as WatchUi.BitmapResource;
 
     function initialize() {
         View.initialize();
@@ -89,6 +99,16 @@ class DeepLineView extends WatchUi.View {
         _orcaAmoled = WatchUi.loadResource($.Rez.Drawables.OrcaAmoled) as WatchUi.BitmapResource;
         _orca1Mip = WatchUi.loadResource($.Rez.Drawables.Orca1Mip) as WatchUi.BitmapResource;
         _orca1Amoled = WatchUi.loadResource($.Rez.Drawables.Orca1Amoled) as WatchUi.BitmapResource;
+        _seaLionMip = WatchUi.loadResource($.Rez.Drawables.SeaLionMip) as WatchUi.BitmapResource;
+        _seaLionAmoled = WatchUi.loadResource($.Rez.Drawables.SeaLionAmoled) as WatchUi.BitmapResource;
+        _thresherMip = WatchUi.loadResource($.Rez.Drawables.ThresherSharkMip) as WatchUi.BitmapResource;
+        _thresherAmoled = WatchUi.loadResource($.Rez.Drawables.ThresherSharkAmoled) as WatchUi.BitmapResource;
+        _mantaMip = WatchUi.loadResource($.Rez.Drawables.MantaRayMip) as WatchUi.BitmapResource;
+        _mantaAmoled = WatchUi.loadResource($.Rez.Drawables.MantaRayAmoled) as WatchUi.BitmapResource;
+        _hammerheadMip = WatchUi.loadResource($.Rez.Drawables.HammerheadSharkMip) as WatchUi.BitmapResource;
+        _hammerheadAmoled = WatchUi.loadResource($.Rez.Drawables.HammerheadSharkAmoled) as WatchUi.BitmapResource;
+        _penguinMip = WatchUi.loadResource($.Rez.Drawables.SwimmingPenguinMip) as WatchUi.BitmapResource;
+        _penguinAmoled = WatchUi.loadResource($.Rez.Drawables.SwimmingPenguinAmoled) as WatchUi.BitmapResource;
     }
 
     function onLayout(dc as Graphics.Dc) as Void {
@@ -106,12 +126,58 @@ class DeepLineView extends WatchUi.View {
     }
 
     function startGame() as Void {
+        if (_model.getState() == DiveConstants.STATE_LEVEL_SELECT &&
+                !_model.isSelectedUnlocked()) {
+            return;
+        }
         _feedbackEvent = DiveConstants.EVENT_NONE;
         _feedbackTicks = 0;
         _animationTick = 0;
         _model.startGame();
         startTimer();
         WatchUi.requestUpdate();
+    }
+
+    function openCampaign() as Void {
+        _model.openCampaign();
+        WatchUi.requestUpdate();
+    }
+
+    function returnToMenu() as Void {
+        _model.returnToMenu();
+        WatchUi.requestUpdate();
+    }
+
+    function changeLevel(delta as Lang.Number) as Void {
+        _model.moveSelection(delta);
+        WatchUi.requestUpdate();
+    }
+
+    function startNextOrRetry() as Void {
+        _feedbackEvent = DiveConstants.EVENT_NONE;
+        _feedbackTicks = 0;
+        _animationTick = 0;
+        _model.startNextOrRetry();
+        startTimer();
+        WatchUi.requestUpdate();
+    }
+
+    function handleLevelTap(x as Lang.Number, y as Lang.Number) as Void {
+        if (y >= _screenHeight * 72 / 100) {
+            startGame();
+        } else if (x < _screenWidth * 45 / 100) {
+            changeLevel(-1);
+        } else if (x > _screenWidth * 55 / 100) {
+            changeLevel(1);
+        }
+    }
+
+    function handleResultTap(x as Lang.Number, y as Lang.Number) as Void {
+        if (x < _screenWidth / 2) {
+            openCampaign();
+        } else {
+            startNextOrRetry();
+        }
     }
 
     function handleAction() as Void {
@@ -229,6 +295,8 @@ class DeepLineView extends WatchUi.View {
         var state = _model.getState();
         if (state == DiveConstants.STATE_MENU) {
             drawMenu(dc);
+        } else if (state == DiveConstants.STATE_LEVEL_SELECT) {
+            drawLevelSelect(dc);
         } else if (state == DiveConstants.STATE_RESULT) {
             drawResult(dc);
         } else {
@@ -242,13 +310,16 @@ class DeepLineView extends WatchUi.View {
     private function drawOcean(dc as Graphics.Dc) as Void {
         var width = dc.getWidth();
         var height = dc.getHeight();
-        dc.setColor(COLOR_ABYSS, COLOR_ABYSS);
+        var abyss = isAmoled() ? biomeAbyss() : biomeMipAbyss();
+        dc.setColor(abyss, abyss);
         dc.clear();
 
         var pixelsPerTenMeters = height * 82 / 100;
         var surfaceY = height * 22 / 100;
         var state = _model.getState();
-        if (state != DiveConstants.STATE_MENU && state != DiveConstants.STATE_RESULT) {
+        if (state != DiveConstants.STATE_MENU &&
+                state != DiveConstants.STATE_LEVEL_SELECT &&
+                state != DiveConstants.STATE_RESULT) {
             surfaceY = (height / 2) -
                 (_model.getDepthCm() * pixelsPerTenMeters / 1000);
         }
@@ -293,32 +364,141 @@ class DeepLineView extends WatchUi.View {
     }
 
     private function amoledOceanColor(depthCm as Lang.Number) as Lang.Number {
-        if (depthCm <= 0) { return COLOR_SURFACE_HIGH; }
+        var surfaceHigh = biomeSurfaceHigh();
+        var aqua = biomeAqua();
+        var shallow = biomeShallow();
+        var mid = biomeMid();
+        var deep = biomeDeep();
+        var abyss = biomeAbyss();
+        if (depthCm <= 0) { return surfaceHigh; }
         if (depthCm < 250) {
-            return mixColor(COLOR_SURFACE_HIGH, COLOR_AQUA, depthCm * 100 / 250);
+            return mixColor(surfaceHigh, aqua, depthCm * 100 / 250);
         }
         if (depthCm < 550) {
-            return mixColor(COLOR_AQUA, COLOR_SHALLOW, (depthCm - 250) * 100 / 300);
+            return mixColor(aqua, shallow, (depthCm - 250) * 100 / 300);
         }
         if (depthCm < 950) {
-            return mixColor(COLOR_SHALLOW, COLOR_MID, (depthCm - 550) * 100 / 400);
+            return mixColor(shallow, mid, (depthCm - 550) * 100 / 400);
         }
         if (depthCm < 1450) {
-            return mixColor(COLOR_MID, COLOR_DEEP_HIGH, (depthCm - 950) * 100 / 500);
+            return mixColor(mid, deep, (depthCm - 950) * 100 / 500);
         }
         if (depthCm < 2100) {
-            return mixColor(COLOR_DEEP_HIGH, COLOR_ABYSS, (depthCm - 1450) * 100 / 650);
+            return mixColor(deep, abyss, (depthCm - 1450) * 100 / 650);
         }
-        return COLOR_ABYSS;
+        return abyss;
     }
 
     private function mipOceanColor(depthCm as Lang.Number) as Lang.Number {
         // The restricted palette keeps the gradient teal on 64-color MIP screens.
-        if (depthCm < 200) { return COLOR_MIP_SURFACE; }
-        if (depthCm < 500) { return COLOR_MIP_LIGHT; }
-        if (depthCm < 900) { return COLOR_MIP_MID; }
-        if (depthCm < 1450) { return COLOR_MIP_DEEP; }
-        return COLOR_MIP_ABYSS;
+        if (depthCm < 200) { return biomeMipSurface(); }
+        if (depthCm < 500) { return biomeMipLight(); }
+        if (depthCm < 900) { return biomeMipMid(); }
+        if (depthCm < 1450) { return biomeMipDeep(); }
+        return biomeMipAbyss();
+    }
+
+    private function biomeSurfaceHigh() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x23BFA7; }
+        if (territory == 2) { return 0x249AC0; }
+        if (territory == 3) { return 0x29B8D0; }
+        if (territory == 4) { return 0xB7E6ED; }
+        return COLOR_SURFACE_HIGH;
+    }
+
+    private function biomeSurface() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x18A68E; }
+        if (territory == 2) { return 0x1686AF; }
+        if (territory == 3) { return 0x1DA6C5; }
+        if (territory == 4) { return 0x83CBD8; }
+        return COLOR_SURFACE;
+    }
+
+    private function biomeAqua() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x118C79; }
+        if (territory == 2) { return 0x0B6D94; }
+        if (territory == 3) { return 0x1287AA; }
+        if (territory == 4) { return 0x4A9CAF; }
+        return COLOR_AQUA;
+    }
+
+    private function biomeShallow() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x0A6C62; }
+        if (territory == 2) { return 0x08537A; }
+        if (territory == 3) { return 0x0A698C; }
+        if (territory == 4) { return 0x347A91; }
+        return COLOR_SHALLOW;
+    }
+
+    private function biomeMid() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x07504E; }
+        if (territory == 2) { return 0x063B61; }
+        if (territory == 3) { return 0x074D70; }
+        if (territory == 4) { return 0x23576E; }
+        return COLOR_MID;
+    }
+
+    private function biomeDeep() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x06393F; }
+        if (territory == 2) { return 0x052A49; }
+        if (territory == 3) { return 0x063650; }
+        if (territory == 4) { return 0x173A50; }
+        return COLOR_DEEP_HIGH;
+    }
+
+    private function biomeAbyss() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x031B25; }
+        if (territory == 2) { return 0x031525; }
+        if (territory == 3) { return 0x031725; }
+        if (territory == 4) { return 0x081827; }
+        return COLOR_ABYSS;
+    }
+
+    private function biomeMipSurface() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x00AA55; }
+        if (territory == 2) { return 0x00AAAA; }
+        if (territory == 3) { return 0x00AAAA; }
+        if (territory == 4) { return 0xAAAAAA; }
+        return COLOR_MIP_SURFACE;
+    }
+
+    private function biomeMipLight() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x008855; }
+        if (territory == 2) { return 0x0088AA; }
+        if (territory == 3) { return 0x0088AA; }
+        if (territory == 4) { return 0x5588AA; }
+        return COLOR_MIP_LIGHT;
+    }
+
+    private function biomeMipMid() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x005544; }
+        if (territory == 2) { return 0x005588; }
+        if (territory == 3) { return 0x005588; }
+        if (territory == 4) { return 0x335577; }
+        return COLOR_MIP_MID;
+    }
+
+    private function biomeMipDeep() as Lang.Number {
+        var territory = _model.getTerritory();
+        if (territory == 1) { return 0x003333; }
+        if (territory == 2) { return 0x003355; }
+        if (territory == 3) { return 0x003355; }
+        if (territory == 4) { return 0x223344; }
+        return COLOR_MIP_DEEP;
+    }
+
+    private function biomeMipAbyss() as Lang.Number {
+        return _model.getTerritory() == 4 ? 0x112233 : COLOR_MIP_ABYSS;
     }
 
     private function mixColor(fromColor as Lang.Number, toColor as Lang.Number,
@@ -356,6 +536,89 @@ class DeepLineView extends WatchUi.View {
 
         drawDuckFrame(dc, 0, cx - scaled(58), height * 22 / 100 + scaled(7));
         drawMenuActionPill(dc, cx, height * 86 / 100);
+    }
+
+    private function drawLevelSelect(dc as Graphics.Dc) as Void {
+        var width = dc.getWidth();
+        var height = dc.getHeight();
+        var cx = width / 2;
+        var level = _model.getSelectedLevel();
+        var territory = _model.getTerritory();
+        var depthMeters = _model.getTargetDepthCm() / 100;
+
+        drawSurfaceAndBuoy(dc, cx, height * 15 / 100);
+        drawTerritoryPreview(dc, territory, width * 61 / 100, height * 45 / 100);
+
+        dc.setColor(COLOR_FOAM, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 24 / 100, Graphics.FONT_SMALL,
+            Campaign.territoryName(territory),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 32 / 100, Graphics.FONT_XTINY,
+            Campaign.territorySubtitle(territory),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 46 / 100, Graphics.FONT_LARGE,
+            depthMeters.format("%d") + "m",
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(COLOR_LINE, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 57 / 100, Graphics.FONT_XTINY,
+            Campaign.landmark(level),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+
+        drawMedals(dc, cx, height * 65 / 100, _model.getSelectedMedal());
+
+        dc.setPenWidth(scaled(2));
+        dc.setColor(level > 0 ? COLOR_TEXT : COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.drawLine(width * 20 / 100, height * 43 / 100,
+            width * 15 / 100, height * 46 / 100);
+        dc.drawLine(width * 15 / 100, height * 46 / 100,
+            width * 20 / 100, height * 49 / 100);
+        dc.setColor(level < Campaign.LEVEL_COUNT - 1 ? COLOR_TEXT : COLOR_DIM,
+            Graphics.COLOR_TRANSPARENT);
+        dc.drawLine(width * 80 / 100, height * 43 / 100,
+            width * 85 / 100, height * 46 / 100);
+        dc.drawLine(width * 85 / 100, height * 46 / 100,
+            width * 80 / 100, height * 49 / 100);
+
+        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 73 / 100, Graphics.FONT_XTINY,
+            (level + 1).format("%d") + " / " + Campaign.LEVEL_COUNT.format("%d"),
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        var actionLabel = _model.isSelectedUnlocked() ? "DIVE" : "LOCKED";
+        var actionColor = _model.isSelectedUnlocked() ? COLOR_ACCENT : COLOR_DIM;
+        drawPrimaryButton(dc, cx, height * 85 / 100, actionLabel, actionColor);
+    }
+
+    private function drawTerritoryPreview(dc as Graphics.Dc,
+            territory as Lang.Number, x as Lang.Number, y as Lang.Number) as Void {
+        var animal = isAmoled() ? _seaLionAmoled : _seaLionMip;
+        if (territory == 1) {
+            animal = isAmoled() ? _thresherAmoled : _thresherMip;
+        } else if (territory == 2) {
+            animal = isAmoled() ? _mantaAmoled : _mantaMip;
+        } else if (territory == 3) {
+            animal = isAmoled() ? _hammerheadAmoled : _hammerheadMip;
+        } else if (territory == 4) {
+            animal = isAmoled() ? _penguinAmoled : _penguinMip;
+        }
+        var bob = ((_animationTick / 6) % 3) - 1;
+        dc.drawBitmap(x - (animal.getWidth() / 2),
+            y - (animal.getHeight() / 2) + scaled(bob), animal);
+    }
+
+    private function drawMedals(dc as Graphics.Dc, cx as Lang.Number,
+            y as Lang.Number, earned as Lang.Number) as Void {
+        for (var index = 0; index < 3; index += 1) {
+            dc.setColor(index < earned ? COLOR_GOOD : COLOR_DIM,
+                Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(scaled(2));
+            dc.drawCircle(cx + scaled((index - 1) * 18), y, scaled(5));
+            if (index < earned) {
+                dc.fillCircle(cx + scaled((index - 1) * 18), y, scaled(2));
+            }
+        }
     }
 
     private function drawDive(dc as Graphics.Dc) as Void {
@@ -396,7 +659,12 @@ class DeepLineView extends WatchUi.View {
         dc.setPenWidth(scaled(2));
         dc.drawLine(cx, 0, cx, height);
 
-        for (var meters = 0; meters <= 25; meters += 5) {
+        var targetMeters = _model.getTargetDepthCm() / 100;
+        var markerStep = 5;
+        if (targetMeters > 40) { markerStep = 10; }
+        if (targetMeters > 60) { markerStep = 20; }
+        if (targetMeters > 120) { markerStep = 25; }
+        for (var meters = 0; meters <= targetMeters; meters += markerStep) {
             var markerDepth = meters * 100;
             var y = cy + ((markerDepth - depth) * pixelsPerTenMeters / 1000);
             if (y < height * 18 / 100 || y > height * 80 / 100) {
@@ -438,49 +706,102 @@ class DeepLineView extends WatchUi.View {
             return;
         }
 
-        var width = dc.getWidth();
-        var height = dc.getHeight();
+        var target = _model.getTargetDepthCm();
+        var span = target * 18 / 100;
+        if (span < 250) { span = 250; }
+        if (span > 650) { span = 650; }
+        var territory = _model.getTerritory();
 
         var fishAlt = ((_animationTick / 4) % 2) == 1;
         var fish = isAmoled() ?
             (fishAlt ? _fish1Amoled : _fishAmoled) :
             (fishAlt ? _fish1Mip : _fishMip);
-        var fishY = cy + ((450 - depth) * pixelsPerTenMeters / 1000);
-        if (depth >= 0 && depth <= 900 &&
-                fishY > height * 12 / 100 && fishY < height * 88 / 100) {
-            var fishX = -fish.getWidth() +
-                (depth * (width + (fish.getWidth() * 2)) / 900);
-            dc.drawBitmap(fishX,
-                fishY - (fish.getHeight() / 2), fish);
-        }
 
         var turtleAlt = ((_animationTick / 8) % 2) == 1;
         var turtle = isAmoled() ?
             (turtleAlt ? _turtle1Amoled : _turtleAmoled) :
             (turtleAlt ? _turtle1Mip : _turtleMip);
-        var turtleY = cy + ((1000 - depth) * pixelsPerTenMeters / 1000);
-        if (depth >= 550 && depth <= 1450 &&
-                turtleY > height * 12 / 100 && turtleY < height * 88 / 100) {
-            var turtleProgress = depth - 550;
-            var turtleX = width -
-                (turtleProgress * (width + turtle.getWidth()) / 900);
-            dc.drawBitmap(turtleX,
-                turtleY - (turtle.getHeight() / 2), turtle);
-        }
 
         var orcaAlt = ((_animationTick / 6) % 2) == 1;
         var orca = isAmoled() ?
             (orcaAlt ? _orca1Amoled : _orcaAmoled) :
             (orcaAlt ? _orca1Mip : _orcaMip);
-        var orcaY = cy + ((1650 - depth) * pixelsPerTenMeters / 1000);
-        if (depth >= 1200 && depth <= 2000 &&
-                orcaY > height * 12 / 100 && orcaY < height * 88 / 100) {
-            var orcaProgress = depth - 1200;
-            var orcaX = -orca.getWidth() +
-                (orcaProgress * (width + (orca.getWidth() * 2)) / 800);
-            dc.drawBitmap(orcaX,
-                orcaY - (orca.getHeight() / 2), orca);
+
+        if (territory == 0) {
+            drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
+                target * 24 / 100, span, true, 4);
+            drawEncounter(dc, turtle, cy, pixelsPerTenMeters, depth,
+                target * 52 / 100, span, false, 8);
+            var seaLion = isAmoled() ? _seaLionAmoled : _seaLionMip;
+            drawEncounter(dc, seaLion, cy, pixelsPerTenMeters, depth,
+                target * 80 / 100, span, true, 5);
+        } else if (territory == 1) {
+            drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
+                target * 24 / 100, span, true, 4);
+            drawEncounter(dc, turtle, cy, pixelsPerTenMeters, depth,
+                target * 52 / 100, span, false, 8);
+            var thresher = isAmoled() ? _thresherAmoled : _thresherMip;
+            drawEncounter(dc, thresher, cy, pixelsPerTenMeters, depth,
+                target * 80 / 100, span, false, 6);
+        } else if (territory == 2) {
+            drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
+                target * 24 / 100, span, true, 4);
+            var manta = isAmoled() ? _mantaAmoled : _mantaMip;
+            drawEncounter(dc, manta, cy, pixelsPerTenMeters, depth,
+                target * 58 / 100, span, true, 7);
+            drawEncounter(dc, turtle, cy, pixelsPerTenMeters, depth,
+                target * 82 / 100, span, false, 8);
+        } else if (territory == 3) {
+            drawEncounter(dc, fish, cy, pixelsPerTenMeters, depth,
+                target * 24 / 100, span, true, 4);
+            var hammerhead = isAmoled() ? _hammerheadAmoled : _hammerheadMip;
+            drawEncounter(dc, hammerhead, cy, pixelsPerTenMeters, depth,
+                target * 56 / 100, span, false, 6);
+            var bahamasManta = isAmoled() ? _mantaAmoled : _mantaMip;
+            drawEncounter(dc, bahamasManta, cy, pixelsPerTenMeters, depth,
+                target * 82 / 100, span, true, 7);
+        } else {
+            var penguin = isAmoled() ? _penguinAmoled : _penguinMip;
+            drawEncounter(dc, penguin, cy, pixelsPerTenMeters, depth,
+                target * 25 / 100, span, true, 5);
+            drawEncounter(dc, orca, cy, pixelsPerTenMeters, depth,
+                target * 58 / 100, span, true, 6);
+            drawEncounter(dc, penguin, cy, pixelsPerTenMeters, depth,
+                target * 82 / 100, span, true, 5);
         }
+    }
+
+    private function drawEncounter(dc as Graphics.Dc, animal as WatchUi.BitmapResource,
+            cy as Lang.Number, pixelsPerTenMeters as Lang.Number,
+            depth as Lang.Number, worldDepth as Lang.Number, span as Lang.Number,
+            leftToRight as Lang.Boolean, bobPeriod as Lang.Number) as Void {
+        var startDepth = worldDepth - span;
+        var endDepth = worldDepth + span;
+        if (startDepth < 0) { startDepth = 0; }
+        if (endDepth > _model.getTargetDepthCm()) {
+            endDepth = _model.getTargetDepthCm();
+        }
+        if (depth < startDepth || depth > endDepth || endDepth <= startDepth) {
+            return;
+        }
+
+        var width = dc.getWidth();
+        var height = dc.getHeight();
+        var animalY = cy + ((worldDepth - depth) * pixelsPerTenMeters / 1000);
+        if (animalY < height * 10 / 100 || animalY > height * 90 / 100) {
+            return;
+        }
+
+        var progress = depth - startDepth;
+        var travel = width + (animal.getWidth() * 2);
+        var animalX = -animal.getWidth() +
+            (progress * travel / (endDepth - startDepth));
+        if (!leftToRight) {
+            animalX = width - (progress * travel / (endDepth - startDepth));
+        }
+        var bob = ((_animationTick / bobPeriod) % 3) - 1;
+        dc.drawBitmap(animalX,
+            animalY - (animal.getHeight() / 2) + scaled(bob), animal);
     }
 
     private function drawDuckSequence(dc as Graphics.Dc, cx as Lang.Number,
@@ -513,17 +834,17 @@ class DeepLineView extends WatchUi.View {
         // A bright cap above the wave and three shallow layers below it make the
         // surface a real boundary that scrolls away as the diver goes deeper.
         if (y > 0) {
-            dc.setColor(isAmoled() ? COLOR_SURFACE_HIGH : COLOR_MIP_SURFACE,
+            dc.setColor(isAmoled() ? biomeSurfaceHigh() : biomeMipSurface(),
                 Graphics.COLOR_TRANSPARENT);
             dc.fillRectangle(0, 0, width, y);
         }
-        dc.setColor(isAmoled() ? COLOR_SURFACE : COLOR_MIP_SURFACE,
+        dc.setColor(isAmoled() ? biomeSurface() : biomeMipSurface(),
             Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(0, y, width, scaled(3));
-        dc.setColor(isAmoled() ? COLOR_AQUA : COLOR_MIP_LIGHT,
+        dc.setColor(isAmoled() ? biomeAqua() : biomeMipLight(),
             Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(0, y + scaled(3), width, scaled(4));
-        dc.setColor(isAmoled() ? COLOR_SHALLOW_HIGH : COLOR_MIP_MID,
+        dc.setColor(isAmoled() ? biomeShallow() : biomeMipMid(),
             Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(0, y + scaled(7), width, scaled(5));
 
@@ -754,26 +1075,36 @@ class DeepLineView extends WatchUi.View {
         var width = dc.getWidth();
         var height = dc.getHeight();
         var cx = width / 2;
+        var level = _model.getSelectedLevel();
         drawSurfaceAndBuoy(dc, cx, height * 18 / 100);
-        dc.setColor(COLOR_GOOD, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, height * 30 / 100, Graphics.FONT_SMALL, "SURFACED · OK",
+        var resultLabel = _model.didReachTarget() ? "SURFACED · OK" : "EARLY TURN · SAFE";
+        var resultColor = _model.didReachTarget() ? COLOR_GOOD : COLOR_LINE;
+        dc.setColor(resultColor, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 28 / 100, Graphics.FONT_SMALL, resultLabel,
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, height * 36 / 100, Graphics.FONT_XTINY,
+            Campaign.territoryName(_model.getTerritory()),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, height * 44 / 100, Graphics.FONT_MEDIUM,
+        dc.drawText(cx, height * 46 / 100, Graphics.FONT_MEDIUM,
             (_model.getMaxDepthCm() / 100.0).format("%.1f") + "m",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(cx, height * 57 / 100, Graphics.FONT_SMALL,
+        drawMedals(dc, cx, height * 56 / 100, _model.getRunMedal());
+        dc.drawText(cx, height * 64 / 100, Graphics.FONT_SMALL,
             "SCORE " + _model.getScore().format("%d"),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, height * 67 / 100, Graphics.FONT_XTINY,
+        dc.drawText(cx, height * 72 / 100, Graphics.FONT_XTINY,
             "PERFECT " + _model.getPerfectCount().format("%d") +
             "  MISS " + _model.getMissCount().format("%d"),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(cx, height * 75 / 100, Graphics.FONT_XTINY,
-            "BEST " + _model.getBestScore().format("%d"),
+        dc.drawText(cx, height * 78 / 100, Graphics.FONT_XTINY,
+            "BEST " + _model.getSelectedBestScore().format("%d"),
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        drawActionPill(dc, cx, height * 88 / 100, "RETRY", COLOR_ACCENT);
+        drawActionPill(dc, width * 30 / 100, height * 89 / 100, "MAP", COLOR_TEXT);
+        var primary = level < _model.getUnlockedLevel() ? "NEXT" : "RETRY";
+        drawActionPill(dc, width * 70 / 100, height * 89 / 100, primary, COLOR_ACCENT);
     }
 
     private function drawTag(dc as Graphics.Dc, x as Lang.Number, y as Lang.Number) as Void {
@@ -812,11 +1143,16 @@ class DeepLineView extends WatchUi.View {
 
     private function drawMenuActionPill(dc as Graphics.Dc, cx as Lang.Number,
             cy as Lang.Number) as Void {
+        drawPrimaryButton(dc, cx, cy, "START", COLOR_ACCENT);
+    }
+
+    private function drawPrimaryButton(dc as Graphics.Dc, cx as Lang.Number,
+            cy as Lang.Number, label as Lang.String, color as Lang.Number) as Void {
         var width = _screenWidth * 48 / 100;
         var height = scaled(30);
         drawPillBackground(dc, cx, cy, width, height, COLOR_ABYSS);
-        dc.setColor(COLOR_ACCENT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy, Graphics.FONT_SMALL, "START",
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(cx, cy, Graphics.FONT_SMALL, label,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 

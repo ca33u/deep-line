@@ -14,13 +14,27 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
         var state = _view.getGameState();
 
         if (key == WatchUi.KEY_ENTER) {
-            if (state == DiveConstants.STATE_MENU || state == DiveConstants.STATE_RESULT) {
+            if (state == DiveConstants.STATE_MENU) {
+                _view.openCampaign();
+            } else if (state == DiveConstants.STATE_LEVEL_SELECT) {
                 _view.startGame();
+            } else if (state == DiveConstants.STATE_RESULT) {
+                _view.startNextOrRetry();
             } else if (state == DiveConstants.STATE_PAUSED) {
                 _view.togglePause();
             } else {
                 _view.handleAction();
             }
+            return true;
+        }
+
+        if (state == DiveConstants.STATE_LEVEL_SELECT && key == WatchUi.KEY_UP) {
+            _view.changeLevel(-1);
+            return true;
+        }
+
+        if (state == DiveConstants.STATE_LEVEL_SELECT && key == WatchUi.KEY_DOWN) {
+            _view.changeLevel(1);
             return true;
         }
 
@@ -33,8 +47,12 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
         }
 
         if (key == WatchUi.KEY_ESC) {
-            if (_view.isDiveActive()) {
+            if (_view.isDiveActive() || state == DiveConstants.STATE_PAUSED) {
                 _view.togglePause();
+            } else if (state == DiveConstants.STATE_LEVEL_SELECT) {
+                _view.returnToMenu();
+            } else if (state == DiveConstants.STATE_RESULT) {
+                _view.openCampaign();
             } else {
                 _view.exitApp();
             }
@@ -46,12 +64,16 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
 
     function onTap(event as WatchUi.ClickEvent) as Lang.Boolean {
         var state = _view.getGameState();
-        if (state == DiveConstants.STATE_MENU || state == DiveConstants.STATE_RESULT) {
-            _view.startGame();
+        var coordinates = event.getCoordinates();
+        if (state == DiveConstants.STATE_MENU) {
+            _view.openCampaign();
+        } else if (state == DiveConstants.STATE_LEVEL_SELECT) {
+            _view.handleLevelTap(coordinates[0], coordinates[1]);
+        } else if (state == DiveConstants.STATE_RESULT) {
+            _view.handleResultTap(coordinates[0], coordinates[1]);
         } else if (state == DiveConstants.STATE_PAUSED) {
             _view.togglePause();
         } else {
-            var coordinates = event.getCoordinates();
             _view.handleTap(coordinates[0], coordinates[1]);
         }
         return true;

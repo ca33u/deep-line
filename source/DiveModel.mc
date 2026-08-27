@@ -10,6 +10,7 @@ module DiveConstants {
     const STATE_RESULT = 5;
     const STATE_SURFACING = 6;
     const STATE_DUCK_DIVE = 7;
+    const STATE_LEVEL_SELECT = 8;
 
     const CUE_NONE = 0;
     const CUE_EQUALIZE = 1;
@@ -33,9 +34,6 @@ module DiveConstants {
     const EVENT_SURFACE_REACHED = 12;
     const EVENT_DUCKED = 13;
 
-    const TARGET_DEPTH_CM = 2000;
-    const DESCENT_SPEED_CM = 10;
-    const ASCENT_SPEED_CM = 12;
     const MAX_FLOW = 100;
 }
 
@@ -60,8 +58,14 @@ class DiveModel {
     private var _surfaceAge as Lang.Number = 0;
     private var _duckAge as Lang.Number = 0;
     private var _targetReached as Lang.Boolean = false;
-    private var _equalizeDepths as Lang.Array<Lang.Number> = [300, 600, 900, 1200, 1500, 1800];
-    private var _strokeDepths as Lang.Array<Lang.Number> = [1700, 1400, 1100, 800, 500];
+    private var _selectedLevel as Lang.Number = 0;
+    private var _unlockedLevel as Lang.Number = 0;
+    private var _targetDepthCm as Lang.Number = 1000;
+    private var _runMedal as Lang.Number = 0;
+    private var _bestScores as Lang.Array<Lang.Number> = [];
+    private var _medals as Lang.Array<Lang.Number> = [];
+    private var _equalizeDepths as Lang.Array<Lang.Number> = [];
+    private var _strokeDepths as Lang.Array<Lang.Number> = [];
 
     function initialize() {
         var saved = Application.Storage.getValue("bestScore");
@@ -69,9 +73,48 @@ class DiveModel {
             _bestScore = saved;
         }
         _persistedBestScore = _bestScore;
+        loadCampaign();
+        configureLevel();
+    }
+
+    function openCampaign() as Void {
+        if (_state == DiveConstants.STATE_MENU || _state == DiveConstants.STATE_RESULT) {
+            _state = DiveConstants.STATE_LEVEL_SELECT;
+        }
+    }
+
+    function returnToMenu() as Void {
+        if (_state == DiveConstants.STATE_LEVEL_SELECT) {
+            _state = DiveConstants.STATE_MENU;
+        }
+    }
+
+    function moveSelection(delta as Lang.Number) as Void {
+        if (_state != DiveConstants.STATE_LEVEL_SELECT) {
+            return;
+        }
+        var next = _selectedLevel + delta;
+        if (next < 0) { next = 0; }
+        if (next >= Campaign.LEVEL_COUNT) { next = Campaign.LEVEL_COUNT - 1; }
+        _selectedLevel = next;
+        configureLevel();
+        Application.Storage.setValue("selectedLevel", _selectedLevel);
+    }
+
+    function startNextOrRetry() as Void {
+        if (_state == DiveConstants.STATE_RESULT && _selectedLevel < _unlockedLevel) {
+            _selectedLevel += 1;
+            configureLevel();
+            Application.Storage.setValue("selectedLevel", _selectedLevel);
+        }
+        startGame();
     }
 
     function startGame() as Void {
+        if (_state == DiveConstants.STATE_LEVEL_SELECT &&
+                _selectedLevel > _unlockedLevel) {
+            return;
+        }
         _state = DiveConstants.STATE_DUCK_DIVE;
         _stateBeforePause = DiveConstants.STATE_DUCK_DIVE;
         _depthCm = 0;
@@ -90,6 +133,8 @@ class DiveModel {
         _surfaceAge = 0;
         _duckAge = 0;
         _targetReached = false;
+        _runMedal = 0;
+        configureLevel();
     }
 
     function togglePause() as Void {
@@ -170,16 +215,16 @@ class DiveModel {
     }
 
     private function advanceDescent() as Lang.Number {
-        _depthCm += DiveConstants.DESCENT_SPEED_CM;
+        _depthCm += Campaign.descentSpeedCm(_selectedLevel);
         if (_depthCm > _maxDepthCm) {
             _maxDepthCm = _depthCm;
         }
 
         if (_cueKind == DiveConstants.CUE_EQUALIZE) {
             _cueAge += 1;
-            if (_cueAge > 5) {
+            if (_cueAge > Campaign.cueDeadline(_selectedLevel)) {
                 _cueKind = DiveConstants.CUE_NONE;
-                applyMiss(12);
+                applyMiss(Campaign.missCost(_selectedLevel));
                 if (_flow <= 0) {
                     beginAscent(false);
                 }
@@ -195,9 +240,9 @@ class DiveModel {
             return DiveConstants.EVENT_CUE;
         }
 
-        if (_depthCm >= DiveConstants.TARGET_DEPTH_CM) {
-            _depthCm = DiveConstants.TARGET_DEPTH_CM;
-            _maxDepthCm = DiveConstants.TARGET_DEPTH_CM;
+        if (_depthCm >= _targetDepthCm) {
+            _depthCm = _targetDepthCm;
+            _maxDepthCm = _targetDepthCm;
             _cueKind = DiveConstants.CUE_TAG;
             _cueAge = 0;
             _targetReached = true;
@@ -219,7 +264,7 @@ class DiveModel {
     }
 
     private function advanceAscent() as Lang.Number {
-        var speed = DiveConstants.ASCENT_SPEED_CM;
+        var speed = Campaign.ascentSpeedCm(_selectedLevel);
         if (_depthCm <= 300) {
             speed = 6;
         }
@@ -242,9 +287,9 @@ class DiveModel {
 
         if (_cueKind == DiveConstants.CUE_STROKE) {
             _cueAge += 1;
-            if (_cueAge > 5) {
+            if (_cueAge > Campaign.cueDeadline(_selectedLevel)) {
                 _cueKind = DiveConstants.CUE_NONE;
-                applyMiss(9);
+                applyMiss(Campaign.missCost(_selectedLevel) - 2);
                 return DiveConstants.EVENT_MISS;
             }
         }
@@ -338,11 +383,84 @@ class DiveModel {
     private function finishRun() as Void {
         _state = DiveConstants.STATE_RESULT;
         _cueKind = DiveConstants.CUE_NONE;
-        _score += (_maxDepthCm / 2) + (_flow * 5);
+        _score += (_maxDepthCm / 2) + (_flow * 5) + (_selectedLevel * 100);
         if (_score > _bestScore) {
             _bestScore = _score;
         }
+        _runMedal = calculateMedal();
+        if (_score > _bestScores[_selectedLevel]) {
+            _bestScores[_selectedLevel] = _score;
+            Application.Storage.setValue(levelKey("levelBest", _selectedLevel), _score);
+        }
+        if (_runMedal > _medals[_selectedLevel]) {
+            _medals[_selectedLevel] = _runMedal;
+            Application.Storage.setValue(levelKey("levelMedal", _selectedLevel), _runMedal);
+        }
+        if (_targetReached && _selectedLevel == _unlockedLevel &&
+                _unlockedLevel < Campaign.LEVEL_COUNT - 1) {
+            _unlockedLevel += 1;
+            Application.Storage.setValue("unlockedLevel", _unlockedLevel);
+        }
         saveBestScore();
+    }
+
+    private function calculateMedal() as Lang.Number {
+        if (!_targetReached) { return 0; }
+        var medal = 1;
+        if (_flow >= 50 && _missCount <= 3) { medal = 2; }
+        if (_flow >= 75 && _missCount <= 1 && _perfectCount >= 3) { medal = 3; }
+        return medal;
+    }
+
+    private function loadCampaign() as Void {
+        for (var index = 0; index < Campaign.LEVEL_COUNT; index += 1) {
+            var savedLevelBest = Application.Storage.getValue(levelKey("levelBest", index));
+            var savedMedal = Application.Storage.getValue(levelKey("levelMedal", index));
+            _bestScores.add(savedLevelBest instanceof Lang.Number ? savedLevelBest : 0);
+            _medals.add(savedMedal instanceof Lang.Number ? savedMedal : 0);
+        }
+
+        var savedUnlocked = Application.Storage.getValue("unlockedLevel");
+        if (savedUnlocked instanceof Lang.Number) {
+            _unlockedLevel = savedUnlocked;
+        } else if (_bestScore > 0) {
+            // Existing 20m players keep access to the complete first territory.
+            _unlockedLevel = 2;
+        }
+        if (_unlockedLevel >= Campaign.LEVEL_COUNT) {
+            _unlockedLevel = Campaign.LEVEL_COUNT - 1;
+        }
+
+        var savedSelected = Application.Storage.getValue("selectedLevel");
+        if (savedSelected instanceof Lang.Number) {
+            _selectedLevel = savedSelected;
+        } else {
+            _selectedLevel = _unlockedLevel;
+        }
+        if (_selectedLevel > _unlockedLevel) { _selectedLevel = _unlockedLevel; }
+        if (_selectedLevel < 0) { _selectedLevel = 0; }
+    }
+
+    private function configureLevel() as Void {
+        _targetDepthCm = Campaign.depthCm(_selectedLevel);
+        _equalizeDepths = [];
+        _strokeDepths = [];
+
+        var equalizeCount = Campaign.equalizeCount(_selectedLevel);
+        for (var equalizeIndex = 1; equalizeIndex <= equalizeCount;
+                equalizeIndex += 1) {
+            _equalizeDepths.add(_targetDepthCm * equalizeIndex / (equalizeCount + 1));
+        }
+
+        var strokeCount = Campaign.strokeCount(_selectedLevel);
+        for (var strokeIndex = 1; strokeIndex <= strokeCount; strokeIndex += 1) {
+            _strokeDepths.add(_targetDepthCm -
+                (_targetDepthCm * strokeIndex / (strokeCount + 1)));
+        }
+    }
+
+    private function levelKey(prefix as Lang.String, level as Lang.Number) as Lang.String {
+        return prefix + level.format("%d");
     }
 
     function saveBestScore() as Void {
@@ -372,6 +490,13 @@ class DiveModel {
     function getCueKind() as Lang.Number { return _cueKind; }
     function getCueAge() as Lang.Number { return _cueAge; }
     function getDuckAge() as Lang.Number { return _duckAge; }
-    function getTargetDepthCm() as Lang.Number { return DiveConstants.TARGET_DEPTH_CM; }
+    function getTargetDepthCm() as Lang.Number { return _targetDepthCm; }
     function didReachTarget() as Lang.Boolean { return _targetReached; }
+    function getSelectedLevel() as Lang.Number { return _selectedLevel; }
+    function getUnlockedLevel() as Lang.Number { return _unlockedLevel; }
+    function getTerritory() as Lang.Number { return Campaign.territory(_selectedLevel); }
+    function getRunMedal() as Lang.Number { return _runMedal; }
+    function getSelectedMedal() as Lang.Number { return _medals[_selectedLevel]; }
+    function getSelectedBestScore() as Lang.Number { return _bestScores[_selectedLevel]; }
+    function isSelectedUnlocked() as Lang.Boolean { return _selectedLevel <= _unlockedLevel; }
 }
