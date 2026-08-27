@@ -342,10 +342,10 @@ class DeepLineView extends WatchUi.View {
         var height = dc.getHeight();
         var cx = width / 2;
 
-        drawSurfaceAndBuoy(dc, cx, height * 22 / 100);
         dc.setColor(COLOR_LINE, Graphics.COLOR_TRANSPARENT);
         dc.setPenWidth(scaled(1));
         dc.drawLine(cx, height * 23 / 100, cx, height * 77 / 100);
+        drawSurfaceAndBuoy(dc, cx, height * 22 / 100);
         var title = isAmoled() ? _titleAmoled : _titleMip;
         dc.drawBitmap(cx - (title.getWidth() / 2),
             height * 40 / 100 - (title.getHeight() / 2), title);
@@ -545,10 +545,7 @@ class DeepLineView extends WatchUi.View {
         if (buoyPhase == 1) { buoyBob = -scaled(1); }
         if (buoyPhase == 3) { buoyBob = scaled(1); }
         dc.drawBitmap(cx - (buoy.getWidth() / 2),
-            y - (buoy.getHeight() * 64 / 100) + buoyBob, buoy);
-        dc.setColor(COLOR_LINE, Graphics.COLOR_TRANSPARENT);
-        dc.setPenWidth(scaled(1));
-        dc.drawLine(cx, y, cx, y + scaled(16));
+            y - (buoy.getHeight() * 74 / 100) + buoyBob, buoy);
     }
 
     private function drawDiver(dc as Graphics.Dc, x as Lang.Number, y as Lang.Number,
@@ -648,7 +645,11 @@ class DeepLineView extends WatchUi.View {
 
         var label = cueLabel(cue);
         if (_feedbackEvent == DiveConstants.EVENT_NONE) {
-            drawStatusText(dc, label, COLOR_TEXT);
+            if (cue == DiveConstants.CUE_GLIDE) {
+                drawTwoLineStatus(dc, "GLIDE", "STAY CALM", COLOR_TEXT);
+            } else {
+                drawStatusText(dc, label, COLOR_TEXT);
+            }
         }
     }
 
@@ -715,9 +716,20 @@ class DeepLineView extends WatchUi.View {
 
     private function drawStatusText(dc as Graphics.Dc, label as Lang.String,
             color as Lang.Number) as Void {
-        var statusY = _screenHeight * 82 / 100;
+        var statusY = _screenHeight * 87 / 100;
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
         dc.drawText(_screenWidth / 2, statusY, Graphics.FONT_XTINY, label,
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+    }
+
+    private function drawTwoLineStatus(dc as Graphics.Dc, first as Lang.String,
+            second as Lang.String, color as Lang.Number) as Void {
+        dc.setColor(color, Graphics.COLOR_TRANSPARENT);
+        dc.drawText(_screenWidth / 2, _screenHeight * 84 / 100,
+            Graphics.FONT_XTINY, first,
+            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
+        dc.drawText(_screenWidth / 2, _screenHeight * 90 / 100,
+            Graphics.FONT_XTINY, second,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -813,7 +825,7 @@ class DeepLineView extends WatchUi.View {
         if (cue == DiveConstants.CUE_TAG) { return "TAKE THE TAG"; }
         if (cue == DiveConstants.CUE_TURN) { return "TURN"; }
         if (cue == DiveConstants.CUE_STROKE) { return "KICK"; }
-        if (cue == DiveConstants.CUE_GLIDE) { return "GLIDE · STAY CALM"; }
+        if (cue == DiveConstants.CUE_GLIDE) { return "GLIDE"; }
         return "";
     }
 
@@ -821,7 +833,7 @@ class DeepLineView extends WatchUi.View {
         if (event == DiveConstants.EVENT_PERFECT) { return "PERFECT"; }
         if (event == DiveConstants.EVENT_GOOD) { return "GOOD"; }
         if (event == DiveConstants.EVENT_MISS) { return "MISSED"; }
-        if (event == DiveConstants.EVENT_WAIT) { return "WAIT"; }
+        if (event == DiveConstants.EVENT_WAIT) { return "EARLY"; }
         if (event == DiveConstants.EVENT_TURN_READY) { return "TAG"; }
         if (event == DiveConstants.EVENT_TAGGED) { return "TAGGED"; }
         if (event == DiveConstants.EVENT_TURNED) { return "TURN"; }
