@@ -91,6 +91,24 @@ class DeepLineView extends WatchUi.View {
         WatchUi.requestUpdate();
     }
 
+    function handleTap(x as Lang.Number, y as Lang.Number) as Void {
+        if (_model.getState() == DiveConstants.STATE_TURNING) {
+            var cue = _model.getCueKind();
+            var targetX = turnTargetX(cue);
+            var targetY = turnTargetY(cue);
+            var hitRadius = scaled(32);
+            if (x < targetX - hitRadius || x > targetX + hitRadius ||
+                    y < targetY - hitRadius || y > targetY + hitRadius) {
+                _feedbackEvent = DiveConstants.EVENT_WAIT;
+                _feedbackTicks = 3;
+                playVibe([new Attention.VibeProfile(18, 30)]);
+                WatchUi.requestUpdate();
+                return;
+            }
+        }
+        handleAction();
+    }
+
     function togglePause() as Void {
         _model.togglePause();
         if (_model.getState() == DiveConstants.STATE_PAUSED) {
@@ -148,15 +166,18 @@ class DeepLineView extends WatchUi.View {
 
     private function handleEvent(event as Lang.Number) as Void {
         if (event == DiveConstants.EVENT_NONE || event == DiveConstants.EVENT_CUE ||
-                event == DiveConstants.EVENT_GLIDE_STARTED) {
+                event == DiveConstants.EVENT_GLIDE_STARTED ||
+                event == DiveConstants.EVENT_TURN_READY ||
+                event == DiveConstants.EVENT_SURFACE_REACHED) {
             return;
         }
 
         _feedbackEvent = event;
-        _feedbackTicks = 6;
+        _feedbackTicks = 10;
         if (event == DiveConstants.EVENT_PERFECT) {
             playVibe([new Attention.VibeProfile(25, 45)]);
-        } else if (event == DiveConstants.EVENT_GOOD || event == DiveConstants.EVENT_TURNED) {
+        } else if (event == DiveConstants.EVENT_GOOD || event == DiveConstants.EVENT_TURNED ||
+                event == DiveConstants.EVENT_TAGGED) {
             playVibe([new Attention.VibeProfile(18, 35)]);
         } else if (event == DiveConstants.EVENT_MISS || event == DiveConstants.EVENT_WAIT ||
                 event == DiveConstants.EVENT_GLIDE_PENALTY) {
@@ -318,9 +339,13 @@ class DeepLineView extends WatchUi.View {
         drawWorld(dc, cx, cy);
         var diverX = state == DiveConstants.STATE_TURNING ?
             cx - scaled(38) : cx - scaled(28);
-        drawDiver(dc, diverX, cy, descending);
+        var diverY = state == DiveConstants.STATE_SURFACING ?
+            cy + scaled(36) : cy;
+        drawDiver(dc, diverX, diverY, descending);
         drawCue(dc, cx, cy);
-        drawHud(dc);
+        if (state != DiveConstants.STATE_SURFACING) {
+            drawHud(dc);
+        }
         drawFeedback(dc, cx, cy);
     }
 
@@ -361,7 +386,10 @@ class DeepLineView extends WatchUi.View {
         }
 
         var targetY = cy + ((_model.getTargetDepthCm() - depth) * pixelsPerTenMeters / 1000);
-        if (targetY > -scaled(40) && targetY < height + scaled(40)) {
+        var state = _model.getState();
+        var showTag = state == DiveConstants.STATE_DESCENDING ||
+            _model.getCueKind() == DiveConstants.CUE_TAG;
+        if (showTag && targetY > -scaled(40) && targetY < height + scaled(40)) {
             drawTag(dc, cx, targetY);
         }
     }
@@ -473,11 +501,36 @@ class DeepLineView extends WatchUi.View {
             dc.setColor(COLOR_ACCENT, Graphics.COLOR_TRANSPARENT);
             dc.setPenWidth(scaled(2));
             dc.drawCircle(cx, cy, movingRadius);
+        } else if (cue == DiveConstants.CUE_TAG || cue == DiveConstants.CUE_TURN) {
+            var targetX = turnTargetX(cue);
+            var targetY = turnTargetY(cue);
+            var pulse = scaled(22 + ((_animationTick / 2) % 3));
+            dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(scaled(1));
+            dc.drawCircle(targetX, targetY, scaled(17));
+            dc.setColor(COLOR_ACCENT, Graphics.COLOR_TRANSPARENT);
+            dc.setPenWidth(scaled(2));
+            dc.drawCircle(targetX, targetY, pulse);
+            dc.fillCircle(targetX, targetY, scaled(3));
         }
 
         var label = cueLabel(cue);
-        drawActionPill(dc, _screenWidth / 2, _screenHeight * 82 / 100,
+        drawActionPill(dc, _screenWidth / 2, _screenHeight * 78 / 100,
             label, COLOR_TEXT);
+    }
+
+    private function turnTargetX(cue as Lang.Number) as Lang.Number {
+        if (cue == DiveConstants.CUE_TURN) {
+            return _screenWidth * 28 / 100;
+        }
+        return _screenWidth / 2;
+    }
+
+    private function turnTargetY(cue as Lang.Number) as Lang.Number {
+        if (cue == DiveConstants.CUE_TURN) {
+            return _screenHeight * 66 / 100;
+        }
+        return _screenHeight / 2;
     }
 
     private function drawHud(dc as Graphics.Dc) as Void {
@@ -487,15 +540,9 @@ class DeepLineView extends WatchUi.View {
 
         var hudY = height / 2;
         var depthX = width * 82 / 100;
-        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(depthX, hudY - scaled(18), Graphics.FONT_XTINY, "DEPTH",
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
         dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(depthX, hudY + scaled(1), Graphics.FONT_MEDIUM,
-            depthMeters.format("%.1f"),
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.setColor(COLOR_DIM, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(depthX, hudY + scaled(20), Graphics.FONT_XTINY, "METERS",
+        dc.drawText(depthX, hudY, Graphics.FONT_MEDIUM,
+            depthMeters.format("%.1f") + "m",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
 
         var radius = (width < height ? width : height) * 44 / 100;
@@ -511,12 +558,8 @@ class DeepLineView extends WatchUi.View {
         dc.drawArc(width / 2, height / 2, radius,
             Graphics.ARC_COUNTER_CLOCKWISE, fillStart, 225);
 
-        var flowX = width * 17 / 100;
         dc.setColor(COLOR_TEXT, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(flowX, hudY - scaled(9), Graphics.FONT_XTINY, "FLOW",
-            Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
-        dc.drawText(flowX, hudY + scaled(9), Graphics.FONT_SMALL,
-            flow.format("%d"),
+        dc.drawText(width * 17 / 100, hudY, Graphics.FONT_XTINY, "FLOW",
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -534,9 +577,10 @@ class DeepLineView extends WatchUi.View {
                 _feedbackEvent == DiveConstants.EVENT_GLIDE_PENALTY) {
             color = COLOR_BAD;
         }
-        drawPillBackground(dc, cx, cy - scaled(51), scaled(70), scaled(23), COLOR_DEEP);
+        var feedbackY = _screenHeight * 90 / 100;
+        drawPillBackground(dc, cx, feedbackY, scaled(70), scaled(23), COLOR_DEEP);
         dc.setColor(color, Graphics.COLOR_TRANSPARENT);
-        dc.drawText(cx, cy - scaled(51), Graphics.FONT_SMALL, label,
+        dc.drawText(cx, feedbackY, Graphics.FONT_SMALL, label,
             Graphics.TEXT_JUSTIFY_CENTER | Graphics.TEXT_JUSTIFY_VCENTER);
     }
 
@@ -620,6 +664,7 @@ class DeepLineView extends WatchUi.View {
     private function cueLabel(cue as Lang.Number) as Lang.String {
         if (cue == DiveConstants.CUE_EQUALIZE) { return "EQUALIZE"; }
         if (cue == DiveConstants.CUE_TAG) { return "TAKE THE TAG"; }
+        if (cue == DiveConstants.CUE_TURN) { return "TURN"; }
         if (cue == DiveConstants.CUE_STROKE) { return "KICK"; }
         if (cue == DiveConstants.CUE_GLIDE) { return "GLIDE · STAY CALM"; }
         return "";
@@ -631,6 +676,7 @@ class DeepLineView extends WatchUi.View {
         if (event == DiveConstants.EVENT_MISS) { return "MISSED"; }
         if (event == DiveConstants.EVENT_WAIT) { return "WAIT"; }
         if (event == DiveConstants.EVENT_TURN_READY) { return "TAG"; }
+        if (event == DiveConstants.EVENT_TAGGED) { return "TAGGED"; }
         if (event == DiveConstants.EVENT_TURNED) { return "TURN"; }
         if (event == DiveConstants.EVENT_GLIDE_PENALTY) { return "STAY CALM"; }
         return "";

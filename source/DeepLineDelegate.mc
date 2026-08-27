@@ -51,7 +51,8 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
         } else if (state == DiveConstants.STATE_PAUSED) {
             _view.togglePause();
         } else {
-            _view.handleAction();
+            var coordinates = event.getCoordinates();
+            _view.handleTap(coordinates[0], coordinates[1]);
         }
         return true;
     }

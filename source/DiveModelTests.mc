@@ -67,11 +67,12 @@ function testFullDiveReachesSurface(logger as Test.Logger) as Lang.Boolean {
         if ((cue == DiveConstants.CUE_EQUALIZE || cue == DiveConstants.CUE_STROKE) &&
                 model.getCueAge() == 2) {
             model.action();
-        } else if (model.getState() == DiveConstants.STATE_TURNING &&
-                model.getCueAge() == 0) {
-            model.advance();
-            model.advance();
-            model.action();
+        } else if (model.getState() == DiveConstants.STATE_TURNING) {
+            if (cue == DiveConstants.CUE_TAG) {
+                model.action();
+            } else if (cue == DiveConstants.CUE_TURN && model.getCueAge() == 2) {
+                model.action();
+            }
         }
 
         var event = model.advance();
@@ -83,6 +84,30 @@ function testFullDiveReachesSurface(logger as Test.Logger) as Lang.Boolean {
 
     logger.error("full dive did not reach the surface");
     return false;
+}
+
+(:test)
+function testTurnRequiresTagAndTurn(logger as Test.Logger) as Lang.Boolean {
+    var model = new DiveModel();
+    model.startGame();
+    while (model.getState() != DiveConstants.STATE_TURNING) {
+        model.advance();
+    }
+
+    if (model.getCueKind() != DiveConstants.CUE_TAG) {
+        logger.error("turn did not begin with tag target");
+        return false;
+    }
+    if (model.action() != DiveConstants.EVENT_TAGGED ||
+            model.getState() != DiveConstants.STATE_TURNING ||
+            model.getCueKind() != DiveConstants.CUE_TURN) {
+        logger.error("first turn action did not advance to second target");
+        return false;
+    }
+    model.advance();
+    model.advance();
+    return model.action() == DiveConstants.EVENT_TURNED &&
+        model.getState() == DiveConstants.STATE_ASCENDING;
 }
 
 (:test)

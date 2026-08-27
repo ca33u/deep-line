@@ -42,4 +42,4 @@ set +e
 set -e
 
 cat "$test_log"
-grep -q "PASSED (passed=6, failed=0, errors=0)" "$test_log"
+grep -q "PASSED (passed=7, failed=0, errors=0)" "$test_log"

@@ -8,12 +8,14 @@ module DiveConstants {
     const STATE_ASCENDING = 3;
     const STATE_PAUSED = 4;
     const STATE_RESULT = 5;
+    const STATE_SURFACING = 6;
 
     const CUE_NONE = 0;
     const CUE_EQUALIZE = 1;
     const CUE_TAG = 2;
     const CUE_STROKE = 3;
     const CUE_GLIDE = 4;
+    const CUE_TURN = 5;
 
     const EVENT_NONE = 0;
     const EVENT_CUE = 1;
@@ -26,6 +28,8 @@ module DiveConstants {
     const EVENT_GLIDE_STARTED = 8;
     const EVENT_GLIDE_PENALTY = 9;
     const EVENT_SURFACED = 10;
+    const EVENT_TAGGED = 11;
+    const EVENT_SURFACE_REACHED = 12;
 
     const TARGET_DEPTH_CM = 2000;
     const DESCENT_SPEED_CM = 10;
@@ -51,7 +55,7 @@ class DiveModel {
     private var _nextDescentCue as Lang.Number = 0;
     private var _nextAscentCue as Lang.Number = 0;
     private var _strokeBoostTicks as Lang.Number = 0;
-    private var _turnAge as Lang.Number = 0;
+    private var _surfaceAge as Lang.Number = 0;
     private var _targetReached as Lang.Boolean = false;
     private var _equalizeDepths as Lang.Array<Lang.Number> = [300, 600, 900, 1200, 1500, 1800];
     private var _strokeDepths as Lang.Array<Lang.Number> = [1700, 1400, 1100, 800, 500];
@@ -80,7 +84,7 @@ class DiveModel {
         _nextDescentCue = 0;
         _nextAscentCue = 0;
         _strokeBoostTicks = 0;
-        _turnAge = 0;
+        _surfaceAge = 0;
         _targetReached = false;
     }
 
@@ -105,6 +109,9 @@ class DiveModel {
         if (_state == DiveConstants.STATE_ASCENDING) {
             return advanceAscent();
         }
+        if (_state == DiveConstants.STATE_SURFACING) {
+            return advanceSurfacing();
+        }
         return DiveConstants.EVENT_NONE;
     }
 
@@ -118,7 +125,15 @@ class DiveModel {
         }
 
         if (_state == DiveConstants.STATE_TURNING) {
-            if (_turnAge >= 2 && _turnAge <= 7) {
+            if (_cueKind == DiveConstants.CUE_TAG) {
+                _cueKind = DiveConstants.CUE_TURN;
+                _cueAge = 0;
+                return DiveConstants.EVENT_TAGGED;
+            }
+            if (_cueKind != DiveConstants.CUE_TURN) {
+                return DiveConstants.EVENT_WAIT;
+            }
+            if (_cueAge >= 2 && _cueAge <= 7) {
                 awardPerfect(150, 3);
             } else {
                 awardGood(80);
@@ -175,7 +190,6 @@ class DiveModel {
             _maxDepthCm = DiveConstants.TARGET_DEPTH_CM;
             _cueKind = DiveConstants.CUE_TAG;
             _cueAge = 0;
-            _turnAge = 0;
             _targetReached = true;
             _state = DiveConstants.STATE_TURNING;
             return DiveConstants.EVENT_TURN_READY;
@@ -185,8 +199,8 @@ class DiveModel {
     }
 
     private function advanceTurn() as Lang.Number {
-        _turnAge += 1;
-        if (_turnAge > 12) {
+        _cueAge += 1;
+        if (_cueAge > 12) {
             applyMiss(10);
             beginAscent(true);
             return DiveConstants.EVENT_TURNED;
@@ -196,6 +210,12 @@ class DiveModel {
 
     private function advanceAscent() as Lang.Number {
         var speed = DiveConstants.ASCENT_SPEED_CM;
+        if (_depthCm <= 300) {
+            speed = 6;
+        }
+        if (_depthCm <= 100) {
+            speed = 3;
+        }
         if (_strokeBoostTicks > 0) {
             speed += 4;
             _strokeBoostTicks -= 1;
@@ -204,8 +224,10 @@ class DiveModel {
 
         if (_depthCm <= 0) {
             _depthCm = 0;
-            finishRun();
-            return DiveConstants.EVENT_SURFACED;
+            _state = DiveConstants.STATE_SURFACING;
+            _cueKind = DiveConstants.CUE_NONE;
+            _surfaceAge = 0;
+            return DiveConstants.EVENT_SURFACE_REACHED;
         }
 
         if (_cueKind == DiveConstants.CUE_STROKE) {
@@ -234,6 +256,15 @@ class DiveModel {
             return DiveConstants.EVENT_CUE;
         }
 
+        return DiveConstants.EVENT_NONE;
+    }
+
+    private function advanceSurfacing() as Lang.Number {
+        _surfaceAge += 1;
+        if (_surfaceAge >= 10) {
+            finishRun();
+            return DiveConstants.EVENT_SURFACED;
+        }
         return DiveConstants.EVENT_NONE;
     }
 
@@ -304,7 +335,8 @@ class DiveModel {
     function isDiveActive() as Lang.Boolean {
         return _state == DiveConstants.STATE_DESCENDING ||
             _state == DiveConstants.STATE_TURNING ||
-            _state == DiveConstants.STATE_ASCENDING;
+            _state == DiveConstants.STATE_ASCENDING ||
+            _state == DiveConstants.STATE_SURFACING;
     }
 
     function getState() as Lang.Number { return _state; }

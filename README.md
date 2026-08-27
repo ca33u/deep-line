@@ -2,7 +2,7 @@
 
 A one-button freediving rhythm game for round Garmin watches.
 
-This repository currently contains the first playable prototype. The diver descends automatically along a fixed line, the player times equalization cues, takes the tag at 20 m, turns, follows kick cues on ascent and glides through the final three metres.
+This repository currently contains the first playable prototype. The diver descends automatically along a fixed line, the player times equalization cues, completes a two-target tag-and-turn sequence at 20 m, follows kick cues on ascent and glides through a slowed final three metres before settling at the surface.
 
 Deep Line is an arcade game. It is not a breath-hold trainer, dive computer or safety tool, and it must not be used during a real dive.
 
