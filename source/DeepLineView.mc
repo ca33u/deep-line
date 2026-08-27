@@ -430,19 +430,25 @@ class DeepLineView extends WatchUi.View {
     private function drawDepthLife(dc as Graphics.Dc, cx as Lang.Number,
             cy as Lang.Number, pixelsPerTenMeters as Lang.Number,
             depth as Lang.Number) as Void {
+        // Each encounter crosses the background once during descent. Keeping them
+        // off ascent prevents the same animal from visibly swimming backwards.
+        if (_model.getState() != DiveConstants.STATE_DESCENDING) {
+            return;
+        }
+
         var width = dc.getWidth();
         var height = dc.getHeight();
-        var swimPhase = _animationTick % 24;
-        var swim = swimPhase <= 12 ? swimPhase : 24 - swimPhase;
-        var drift = (swim - 6) * scaled(1) / 2;
 
         var fishAlt = ((_animationTick / 4) % 2) == 1;
         var fish = isAmoled() ?
             (fishAlt ? _fish1Amoled : _fishAmoled) :
             (fishAlt ? _fish1Mip : _fishMip);
         var fishY = cy + ((450 - depth) * pixelsPerTenMeters / 1000);
-        if (fishY > height * 12 / 100 && fishY < height * 88 / 100) {
-            dc.drawBitmap(width * 64 / 100 - (fish.getWidth() / 2) + drift,
+        if (depth >= 0 && depth <= 900 &&
+                fishY > height * 12 / 100 && fishY < height * 88 / 100) {
+            var fishX = -fish.getWidth() +
+                (depth * (width + (fish.getWidth() * 2)) / 900);
+            dc.drawBitmap(fishX,
                 fishY - (fish.getHeight() / 2), fish);
         }
 
@@ -451,21 +457,27 @@ class DeepLineView extends WatchUi.View {
             (turtleAlt ? _turtle1Amoled : _turtleAmoled) :
             (turtleAlt ? _turtle1Mip : _turtleMip);
         var turtleY = cy + ((1000 - depth) * pixelsPerTenMeters / 1000);
-        if (turtleY > height * 12 / 100 && turtleY < height * 88 / 100) {
-            dc.drawBitmap(width * 27 / 100 - (turtle.getWidth() / 2) - drift,
+        if (depth >= 550 && depth <= 1450 &&
+                turtleY > height * 12 / 100 && turtleY < height * 88 / 100) {
+            var turtleProgress = depth - 550;
+            var turtleX = width -
+                (turtleProgress * (width + turtle.getWidth()) / 900);
+            dc.drawBitmap(turtleX,
                 turtleY - (turtle.getHeight() / 2), turtle);
         }
 
-        if (_model.getState() == DiveConstants.STATE_DESCENDING) {
-            var orcaAlt = ((_animationTick / 6) % 2) == 1;
-            var orca = isAmoled() ?
-                (orcaAlt ? _orca1Amoled : _orcaAmoled) :
-                (orcaAlt ? _orca1Mip : _orcaMip);
-            var orcaY = cy + ((1650 - depth) * pixelsPerTenMeters / 1000);
-            if (orcaY > height * 12 / 100 && orcaY < height * 88 / 100) {
-                dc.drawBitmap(width * 55 / 100 - (orca.getWidth() / 2) + (drift / 2),
-                    orcaY - (orca.getHeight() / 2), orca);
-            }
+        var orcaAlt = ((_animationTick / 6) % 2) == 1;
+        var orca = isAmoled() ?
+            (orcaAlt ? _orca1Amoled : _orcaAmoled) :
+            (orcaAlt ? _orca1Mip : _orcaMip);
+        var orcaY = cy + ((1650 - depth) * pixelsPerTenMeters / 1000);
+        if (depth >= 1200 && depth <= 2000 &&
+                orcaY > height * 12 / 100 && orcaY < height * 88 / 100) {
+            var orcaProgress = depth - 1200;
+            var orcaX = -orca.getWidth() +
+                (orcaProgress * (width + (orca.getWidth() * 2)) / 800);
+            dc.drawBitmap(orcaX,
+                orcaY - (orca.getHeight() / 2), orca);
         }
     }
 
