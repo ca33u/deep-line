@@ -21,10 +21,20 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
             } else if (state == DiveConstants.STATE_RESULT) {
                 _view.startNextOrRetry();
             } else if (state == DiveConstants.STATE_PAUSED) {
-                _view.togglePause();
+                _view.activatePauseSelection();
             } else {
                 _view.handleAction();
             }
+            return true;
+        }
+
+        if (state == DiveConstants.STATE_PAUSED && key == WatchUi.KEY_UP) {
+            _view.movePauseSelection(-1);
+            return true;
+        }
+
+        if (state == DiveConstants.STATE_PAUSED && key == WatchUi.KEY_DOWN) {
+            _view.movePauseSelection(1);
             return true;
         }
 
@@ -47,7 +57,9 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
         }
 
         if (key == WatchUi.KEY_ESC) {
-            if (_view.isDiveActive() || state == DiveConstants.STATE_PAUSED) {
+            if (state == DiveConstants.STATE_PAUSED) {
+                _view.togglePause();
+            } else if (_view.isDiveActive()) {
                 _view.togglePause();
             } else if (state == DiveConstants.STATE_LEVEL_SELECT) {
                 _view.returnToMenu();
@@ -72,7 +84,7 @@ class DeepLineDelegate extends WatchUi.InputDelegate {
         } else if (state == DiveConstants.STATE_RESULT) {
             _view.handleResultTap(coordinates[0], coordinates[1]);
         } else if (state == DiveConstants.STATE_PAUSED) {
-            _view.togglePause();
+            _view.handlePauseTap(coordinates[0], coordinates[1]);
         } else {
             _view.handleTap(coordinates[0], coordinates[1]);
         }

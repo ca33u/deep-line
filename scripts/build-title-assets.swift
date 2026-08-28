@@ -40,6 +40,14 @@ for variant in variants {
     NSGraphicsContext.saveGraphicsState()
     NSGraphicsContext.current = NSGraphicsContext(bitmapImageRep: bitmap)
     NSGraphicsContext.current?.imageInterpolation = .high
+    if let context = NSGraphicsContext.current?.cgContext {
+        // Garmin MIP quantization exaggerates colored LCD subpixel fringes.
+        // Keep grayscale antialiasing, but never bake RGB subpixels into the PNG.
+        context.setShouldAntialias(true)
+        context.setShouldSmoothFonts(false)
+        context.setShouldSubpixelPositionFonts(false)
+        context.setShouldSubpixelQuantizeFonts(false)
+    }
     NSColor.clear.setFill()
     NSRect(x: 0, y: 0, width: variant.width, height: variant.height).fill()
 
@@ -48,8 +56,7 @@ for variant in variants {
     }
 
     let shadow = NSShadow()
-    shadow.shadowColor = NSColor(calibratedRed: 4 / 255, green: 24 / 255,
-        blue: 35 / 255, alpha: 0.62)
+    shadow.shadowColor = NSColor(calibratedWhite: 0, alpha: 0.62)
     shadow.shadowOffset = NSSize(width: variant.shadowOffset,
         height: -variant.shadowOffset)
     shadow.shadowBlurRadius = variant.shadowOffset
@@ -61,12 +68,10 @@ for variant in variants {
             .font: font,
             .kern: variant.kern,
             .paragraphStyle: paragraph,
-            .strokeColor: NSColor(calibratedRed: 4 / 255, green: 24 / 255,
-                blue: 35 / 255, alpha: 0.72),
+            .strokeColor: NSColor(calibratedWhite: 0, alpha: 0.72),
             .strokeWidth: -1.1,
             .shadow: shadow,
-            .foregroundColor: NSColor(calibratedRed: 246 / 255,
-                green: 240 / 255, blue: 220 / 255, alpha: 1)
+            .foregroundColor: NSColor.white
         ])
     let bounds = attributed.boundingRect(
         with: NSSize(width: CGFloat(variant.width), height: .greatestFiniteMagnitude),

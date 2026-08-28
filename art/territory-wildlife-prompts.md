@@ -31,14 +31,19 @@ white background, glow cloud.
 ## Subjects
 
 - **Mexico:** California sea lion, right-facing, fore flippers swept back.
-- **Philippines:** pelagic thresher shark, left-facing, extremely long upper
+- **Visayan Sea / Philippines:** pelagic thresher shark, left-facing, extremely long upper
   tail lobe curving gently upward.
 - **Red Sea:** oceanic manta ray, right-facing three-quarter side profile, both
   broad wings, two cephalic lobes and one complete thin tail.
 - **Bahamas:** scalloped hammerhead shark, left-facing side profile, eyes at the
   ends of an anatomically plausible hammer-shaped head.
-- **Antarctica:** Adélie penguin, right-facing underwater dart pose, both
-  flipper-wings swept slightly backward and feet together.
+- **Greenland Sea:** narwhal, right-facing near-side profile, one straight spiral
+  tusk, rounded forehead, compact pectoral flippers, broad tail and no dorsal fin.
+
+The Visayan campaign preview uses the existing shallow green turtle and carries
+that same turtle into the opening of the dive. The pelagic thresher remains the
+territory's signature deeper encounter around the Monad cleaning-station range;
+it is no longer presented as an animal already swimming through the first metres.
 
 The first sea-lion output baked a checkerboard into RGB. It received a second
 `background-extraction` edit with the instruction to change only the background
@@ -74,17 +79,39 @@ limb count, and transparent canvas, then requested exactly one small motion:
 - manta: both pectoral wing tips move into a gentle downstroke;
 - hammerhead: rear torso and heterocercal tail flex oppositely while the entire
   cephalofoil remains locked;
-- Adélie penguin: both flipper-wings lift slightly and the feet flex down.
+- narwhal: rear torso takes a restrained S-curve while the tail flukes lift.
 
 All five generated edits received a background-only extraction pass. Accepted
 second frames use the `-1.png` suffix and keep the same runtime dimensions as
 their matching first frame.
 
-## Antarctic ice resident
+## Arctic ice residents
 
-`leopard-seal-floe.png` was generated in `stylized-concept` mode from the sea
-lion only as a style reference: one anatomically plausible adult leopard seal,
-calmly resting on one compact Antarctic pack-ice floe, with a slender spotted
-body, large head, long fore flippers, joined hind flippers, and true alpha.
-The asset replaces the requested polar bear because polar bears live in the
-Arctic, while leopard seals inhabit pack ice around Antarctica.
+`ringed-seal-floe.png` was rebuilt from the former leopard-seal composition as a
+high-invariance edit: the ice, perspective and layout stayed fixed while the
+animal became a compact Arctic ringed seal with a rounded head, short muzzle and
+large pale rings on a lighter gray coat. The simplified pattern, separated near
+flipper and split rear flippers remain legible at 72×42. A background-extraction
+pass restored true alpha.
+
+`polar-bear-floe.png` now belongs to the geographically coherent Greenland Sea
+territory. The accepted sprite uses the compact floe layout, true alpha, and a
+raised side-profile with a clear belly gap and separated legs so the animal
+survives the final 72×42 / 100×58 downscale.
+
+Both surface residents also have restrained second frames. The polar bear keeps
+its head raised while advancing one front paw; the ringed
+seal lifts its head and near front flipper. Each edit locks the canvas, ice-floe
+placement, scale, palette and orientation so the habitat stays stable while only
+the animal moves. The first outputs baked a checkerboard into RGB, so both
+accepted `-1.png` sources received a separate background-extraction pass and
+were verified to contain real alpha.
+
+Both Arctic composite pairs are finally mirrored to face left. They still enter
+from and occupy the right surface lane, but now look inward toward the buoy and
+diver instead of outward into the clipped edge of the round screen.
+
+The former Southern Ocean set mixed a requested polar bear with Antarctic Adélie
+penguins and a leopard seal. It was replaced by one Arctic ecosystem: polar bear
+and ringed seal on the surface, two-frame narwhal as the hero encounter, and orca
+in the background. The old penguin and leopard-seal files are obsolete.

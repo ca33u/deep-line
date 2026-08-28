@@ -5,6 +5,11 @@ module Campaign {
     const TERRITORY_COUNT = 5;
     const LEVELS_PER_TERRITORY = 3;
 
+    // The calm final metres of an ascent. Kick cues never land inside it, so a
+    // promised cue count is always the count the diver actually sees.
+    const GLIDE_DEPTH_CM = 300;
+    const STROKE_FLOOR_CM = 400;
+
     function depthCm(level as Lang.Number) as Lang.Number {
         if (level == 0) { return 1000; }
         if (level == 1) { return 1500; }
@@ -18,7 +23,7 @@ module Campaign {
         if (level == 9) { return 7500; }
         if (level == 10) { return 10000; }
         if (level == 11) { return 12000; }
-        if (level == 12) { return 13600; }
+        if (level == 12) { return 12600; }
         if (level == 13) { return 14500; }
         return 15000;
     }
@@ -28,38 +33,11 @@ module Campaign {
     }
 
     function territoryName(territoryIndex as Lang.Number) as Lang.String {
-        if (territoryIndex == 0) { return "MEXICO"; }
-        if (territoryIndex == 1) { return "PHILIPPINES"; }
-        if (territoryIndex == 2) { return "RED SEA"; }
-        if (territoryIndex == 3) { return "BAHAMAS"; }
-        return "ANTARCTICA";
-    }
-
-    function territorySubtitle(territoryIndex as Lang.Number) as Lang.String {
         if (territoryIndex == 0) { return "SEA OF CORTEZ"; }
-        if (territoryIndex == 1) { return "BOHOL SEA"; }
-        if (territoryIndex == 2) { return "DAHAB"; }
-        if (territoryIndex == 3) { return "DEAN'S BLUE HOLE"; }
-        return "SOUTHERN OCEAN";
-    }
-
-    function rankName(level as Lang.Number) as Lang.String {
-        if (level <= 2) { return "BEGINNER"; }
-        if (level <= 5) { return "WAVE RIDER"; }
-        if (level <= 8) { return "DEEP DIVER"; }
-        if (level <= 11) { return "ELITE"; }
-        if (level <= 13) { return "RECORD CHASER"; }
-        return "BEYOND THE RECORD";
-    }
-
-    function landmark(level as Lang.Number) as Lang.String {
-        if (level == 2) { return "WAVE 1 RANGE"; }
-        if (level == 4) { return "WAVE 2 RANGE"; }
-        if (level == 6) { return "WAVE 3 RANGE"; }
-        if (level == 7) { return "WAVE 4 RANGE"; }
-        if (level == 12) { return "136m CWT LANDMARK"; }
-        if (level == 14) { return "BEYOND THE RECORD"; }
-        return rankName(level);
+        if (territoryIndex == 1) { return "VISAYAN SEA"; }
+        if (territoryIndex == 2) { return "RED SEA"; }
+        if (territoryIndex == 3) { return "ATLANTIC OCEAN"; }
+        return "GREENLAND SEA";
     }
 
     function descentSpeedCm(level as Lang.Number) as Lang.Number {
@@ -86,7 +64,28 @@ module Campaign {
         return 5;
     }
 
+    // The timing ring lands on the target band exactly at the last perfect tick,
+    // so the visual promise and the scoring window cannot drift apart.
+    function perfectStart(level as Lang.Number) as Lang.Number {
+        return 2;
+    }
+
+    function perfectEnd(level as Lang.Number) as Lang.Number {
+        return territory(level) >= 3 ? 2 : 3;
+    }
+
+    // How many missed cues a dive survives before the safe early turn. Ignoring
+    // every cue must never reach the bottom, and the allowance tightens with
+    // each territory.
+    function missTolerance(level as Lang.Number) as Lang.Number {
+        var count = equalizeCount(level);
+        var tolerated = count * 2 / 3;
+        if (territory(level) >= 2) { tolerated = count / 2; }
+        if (territory(level) >= 4) { tolerated = count * 2 / 5; }
+        return tolerated < 2 ? 2 : tolerated;
+    }
+
     function missCost(level as Lang.Number) as Lang.Number {
-        return 10 + (territory(level) * 2);
+        return (100 / (missTolerance(level) + 1)) + 1;
     }
 }

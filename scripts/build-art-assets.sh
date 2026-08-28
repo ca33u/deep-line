@@ -10,6 +10,10 @@ SWIFT_MODULECACHE_PATH=/tmp/deep-line-swift-cache \
 CLANG_MODULE_CACHE_PATH=/tmp/deep-line-clang-cache \
 swift scripts/build-title-assets.swift
 
+SWIFT_MODULECACHE_PATH=/tmp/deep-line-swift-cache \
+CLANG_MODULE_CACHE_PATH=/tmp/deep-line-clang-cache \
+swift scripts/build-mip-backgrounds.swift
+
 render_frame() {
     input="$1"
     crop="$2"
@@ -47,9 +51,12 @@ manta="art/source/manta-ray.png"
 manta_1="art/source/manta-ray-1.png"
 hammerhead="art/source/hammerhead-shark.png"
 hammerhead_1="art/source/hammerhead-shark-1.png"
-penguin="art/source/swimming-penguin.png"
-penguin_1="art/source/swimming-penguin-1.png"
-leopard_seal_floe="art/source/leopard-seal-floe.png"
+narwhal="art/source/narwhal.png"
+narwhal_1="art/source/narwhal-1.png"
+polar_bear_floe="art/source/polar-bear-floe.png"
+polar_bear_floe_1="art/source/polar-bear-floe-1.png"
+ringed_seal_floe="art/source/ringed-seal-floe.png"
+ringed_seal_floe_1="art/source/ringed-seal-floe-1.png"
 
 render_frame "$descend" "512:1024:0:0" "52:78" "72:108" "diver_descend"
 render_frame "$descend" "512:1024:512:0" "52:78" "72:108" "diver_descend_1"
@@ -84,6 +91,9 @@ render_frame "$manta" "iw:ih:0:0" "80:54" "112:76" "manta_ray"
 render_frame "$manta_1" "iw:ih:0:0" "80:54" "112:76" "manta_ray_1"
 render_frame "$hammerhead" "iw:ih:0:0" "90:48" "126:68" "hammerhead_shark"
 render_frame "$hammerhead_1" "iw:ih:0:0" "90:48" "126:68" "hammerhead_shark_1"
-render_frame "$penguin" "iw:ih:0:0" "60:38" "84:54" "swimming_penguin"
-render_frame "$penguin_1" "iw:ih:0:0" "60:38" "84:54" "swimming_penguin_1"
-render_frame "$leopard_seal_floe" "iw:ih:0:0" "54:30" "76:42" "leopard_seal_floe"
+render_frame "$narwhal" "iw:ih:0:0" "96:40" "134:56" "narwhal"
+render_frame "$narwhal_1" "iw:ih:0:0" "96:40" "134:56" "narwhal_1"
+render_frame "$polar_bear_floe" "iw:ih:0:0" "72:42" "100:58" "polar_bear_floe"
+render_frame "$polar_bear_floe_1" "iw:ih:0:0" "72:42" "100:58" "polar_bear_floe_1"
+render_frame "$ringed_seal_floe" "iw:ih:0:0" "54:30" "76:42" "ringed_seal_floe"
+render_frame "$ringed_seal_floe_1" "iw:ih:0:0" "54:30" "76:42" "ringed_seal_floe_1"

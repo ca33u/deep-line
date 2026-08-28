@@ -2,6 +2,11 @@
     <bitmap id="LauncherIcon" filename="launcher_icon.svg"/>
     <bitmap id="DeepLineTitleMip" filename="generated/deep_line_title_mip.png"/>
     <bitmap id="DeepLineTitleAmoled" filename="generated/deep_line_title_amoled.png"/>
+    <bitmap id="OceanGradientSeaOfCortezMip" filename="generated/ocean_gradient_sea_of_cortez_mip.png"/>
+    <bitmap id="OceanGradientVisayanSeaMip" filename="generated/ocean_gradient_visayan_sea_mip.png"/>
+    <bitmap id="OceanGradientRedSeaMip" filename="generated/ocean_gradient_red_sea_mip.png"/>
+    <bitmap id="OceanGradientAtlanticMip" filename="generated/ocean_gradient_atlantic_mip.png"/>
+    <bitmap id="OceanGradientGreenlandSeaMip" filename="generated/ocean_gradient_greenland_sea_mip.png"/>
     <bitmap id="DiverDescend0Mip" filename="generated/diver_descend_mip.png"/>
     <bitmap id="DiverDescend1Mip" filename="generated/diver_descend_1_mip.png"/>
     <bitmap id="DiverDescend2Mip" filename="generated/diver_descend_2_mip.png"/>
@@ -62,10 +67,16 @@
     <bitmap id="HammerheadSharkAmoled" filename="generated/hammerhead_shark_amoled.png"/>
     <bitmap id="HammerheadShark1Mip" filename="generated/hammerhead_shark_1_mip.png"/>
     <bitmap id="HammerheadShark1Amoled" filename="generated/hammerhead_shark_1_amoled.png"/>
-    <bitmap id="SwimmingPenguinMip" filename="generated/swimming_penguin_mip.png"/>
-    <bitmap id="SwimmingPenguinAmoled" filename="generated/swimming_penguin_amoled.png"/>
-    <bitmap id="SwimmingPenguin1Mip" filename="generated/swimming_penguin_1_mip.png"/>
-    <bitmap id="SwimmingPenguin1Amoled" filename="generated/swimming_penguin_1_amoled.png"/>
-    <bitmap id="LeopardSealFloeMip" filename="generated/leopard_seal_floe_mip.png"/>
-    <bitmap id="LeopardSealFloeAmoled" filename="generated/leopard_seal_floe_amoled.png"/>
+    <bitmap id="NarwhalMip" filename="generated/narwhal_mip.png"/>
+    <bitmap id="NarwhalAmoled" filename="generated/narwhal_amoled.png"/>
+    <bitmap id="Narwhal1Mip" filename="generated/narwhal_1_mip.png"/>
+    <bitmap id="Narwhal1Amoled" filename="generated/narwhal_1_amoled.png"/>
+    <bitmap id="PolarBearFloeMip" filename="generated/polar_bear_floe_mip.png"/>
+    <bitmap id="PolarBearFloeAmoled" filename="generated/polar_bear_floe_amoled.png"/>
+    <bitmap id="PolarBearFloe1Mip" filename="generated/polar_bear_floe_1_mip.png"/>
+    <bitmap id="PolarBearFloe1Amoled" filename="generated/polar_bear_floe_1_amoled.png"/>
+    <bitmap id="RingedSealFloeMip" filename="generated/ringed_seal_floe_mip.png"/>
+    <bitmap id="RingedSealFloeAmoled" filename="generated/ringed_seal_floe_amoled.png"/>
+    <bitmap id="RingedSealFloe1Mip" filename="generated/ringed_seal_floe_1_mip.png"/>
+    <bitmap id="RingedSealFloe1Amoled" filename="generated/ringed_seal_floe_1_amoled.png"/>
 </drawables>
