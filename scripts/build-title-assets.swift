@@ -2,7 +2,8 @@ import AppKit
 import Foundation
 
 struct TitleVariant {
-    let suffix: String
+    let outputDirectory: String
+    let filename: String
     let width: Int
     let height: Int
     let fontSize: CGFloat
@@ -11,17 +12,29 @@ struct TitleVariant {
 }
 
 let variants = [
-    TitleVariant(suffix: "mip", width: 214, height: 60,
+    TitleVariant(outputDirectory: "resources/drawables/generated",
+        filename: "deep_line_title_mip.png", width: 214, height: 60,
         fontSize: 46, kern: 0.8, shadowOffset: 1),
-    TitleVariant(suffix: "amoled", width: 300, height: 80,
-        fontSize: 63, kern: 1.2, shadowOffset: 2)
+    TitleVariant(outputDirectory: "resources/drawables/generated",
+        filename: "deep_line_title_amoled.png", width: 300, height: 80,
+        fontSize: 63, kern: 1.2, shadowOffset: 2),
+    TitleVariant(outputDirectory: "resources-round-416x416/drawables/generated",
+        filename: "deep_line_title_amoled.png", width: 320, height: 85,
+        fontSize: 67, kern: 1.3, shadowOffset: 2),
+    TitleVariant(outputDirectory: "resources-round-454x454/drawables/generated",
+        filename: "deep_line_title_amoled.png", width: 349, height: 93,
+        fontSize: 73, kern: 1.4, shadowOffset: 2),
+    TitleVariant(outputDirectory: "resources-round-466x466/drawables/generated",
+        filename: "deep_line_title_amoled.png", width: 358, height: 96,
+        fontSize: 75, kern: 1.4, shadowOffset: 2)
 ]
-
-let outputDirectory = URL(fileURLWithPath: "resources/drawables/generated",
-    isDirectory: true)
 let title = "DEEP LINE" as NSString
 
 for variant in variants {
+    let outputDirectory = URL(fileURLWithPath: variant.outputDirectory,
+        isDirectory: true)
+    try FileManager.default.createDirectory(at: outputDirectory,
+        withIntermediateDirectories: true)
     guard let bitmap = NSBitmapImageRep(
         bitmapDataPlanes: nil,
         pixelsWide: variant.width,
@@ -86,6 +99,5 @@ for variant in variants {
     guard let data = bitmap.representation(using: .png, properties: [:]) else {
         fatalError("Unable to encode title bitmap")
     }
-    try data.write(to: outputDirectory
-        .appendingPathComponent("deep_line_title_\(variant.suffix).png"))
+    try data.write(to: outputDirectory.appendingPathComponent(variant.filename))
 }

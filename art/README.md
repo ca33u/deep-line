@@ -48,7 +48,7 @@ colored fringes. The larger transparent canvas keeps the edge and shadow clear o
 the bitmap bounds. The exact typography is reproducible and does not depend on
 Garmin's limited runtime font set.
 
-Runtime animation uses three descent frames, three ascent frames, two equalization frames and three turn frames. `scripts/build-art-assets.sh` rebuilds both density sets from the source strips. Only the density for the current display is loaded into memory.
+Runtime animation uses three descent frames, three ascent frames, two equalization frames and three turn frames. `scripts/build-art-assets.sh` rebuilds the MIP set and four AMOLED resolution sets from the source strips. The AMOLED assets target 390, 416, 454 and 466 px round screens, so the title, diver, buoy, tag and wildlife stay proportional to the vector HUD. Only the matching resources for the current display are packaged and loaded.
 
 ## Art direction
 

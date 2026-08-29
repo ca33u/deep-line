@@ -35,6 +35,9 @@ current build.
 - Runtime launcher icons are generated from the same approved portrait at native
   40, 54, 60 and 65 px sizes through the base and round-resolution resource
   folders, so current MIP and AMOLED devices do not upscale the old 40 px icon.
+- Runtime AMOLED sprites have native 390, 416, 454 and 466 px variants. The
+  source-sheet generator scales the complete visual set by screen ratio, keeping
+  the diver, buoy, tag, animals and title proportional to the vector HUD.
 - `assets/hero-1440x720-en.png` — English hero image.
 - `../art/source/store-hero-v10.png` — text-free cinematic source artwork used by
   the hero image. The diver is the exact first pose selected by the user.

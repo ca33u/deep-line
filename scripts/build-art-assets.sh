@@ -5,6 +5,9 @@ cd "$(dirname "$0")/.."
 
 out_dir="resources/drawables/generated"
 mkdir -p "$out_dir"
+for screen in 416 454 466; do
+    mkdir -p "resources-round-${screen}x${screen}/drawables/generated"
+done
 
 SWIFT_MODULECACHE_PATH=/tmp/deep-line-swift-cache \
 CLANG_MODULE_CACHE_PATH=/tmp/deep-line-clang-cache \
@@ -13,6 +16,16 @@ swift scripts/build-title-assets.swift
 SWIFT_MODULECACHE_PATH=/tmp/deep-line-swift-cache \
 CLANG_MODULE_CACHE_PATH=/tmp/deep-line-clang-cache \
 swift scripts/build-mip-backgrounds.swift
+
+scaled_size() {
+    size="$1"
+    screen="$2"
+    width="${size%%:*}"
+    height="${size#*:}"
+    printf '%s:%s' \
+        "$(((width * screen + 195) / 390))" \
+        "$(((height * screen + 195) / 390))"
+}
 
 render_frame() {
     input="$1"
@@ -28,6 +41,27 @@ render_frame() {
     ffmpeg -hide_banner -loglevel error -y -i "$input" \
         -vf "crop=$crop,scale=$amoled_size:force_original_aspect_ratio=decrease:flags=lanczos,pad=$amoled_size:(ow-iw)/2:(oh-ih)/2:color=black@0" \
         -frames:v 1 "$out_dir/${output_stem}_amoled.png"
+
+    for screen in 416 454 466; do
+        target_size="$(scaled_size "$amoled_size" "$screen")"
+        target_dir="resources-round-${screen}x${screen}/drawables/generated"
+        ffmpeg -hide_banner -loglevel error -y -i "$input" \
+            -vf "crop=$crop,scale=$target_size:force_original_aspect_ratio=decrease:flags=lanczos,pad=$target_size:(ow-iw)/2:(oh-ih)/2:color=black@0" \
+            -frames:v 1 "$target_dir/${output_stem}_amoled.png"
+    done
+}
+
+scale_existing_amoled() {
+    output_stem="$1"
+    amoled_size="$2"
+    input="$out_dir/${output_stem}_amoled.png"
+    for screen in 416 454 466; do
+        target_size="$(scaled_size "$amoled_size" "$screen")"
+        target_dir="resources-round-${screen}x${screen}/drawables/generated"
+        ffmpeg -hide_banner -loglevel error -y -i "$input" \
+            -vf "scale=$target_size:flags=lanczos" -frames:v 1 \
+            "$target_dir/${output_stem}_amoled.png"
+    done
 }
 
 descend="art/source/freediver-descend-animation-sheet.png"
@@ -97,3 +131,9 @@ render_frame "$polar_bear_floe" "iw:ih:0:0" "72:42" "100:58" "polar_bear_floe"
 render_frame "$polar_bear_floe_1" "iw:ih:0:0" "72:42" "100:58" "polar_bear_floe_1"
 render_frame "$ringed_seal_floe" "iw:ih:0:0" "54:30" "76:42" "ringed_seal_floe"
 render_frame "$ringed_seal_floe_1" "iw:ih:0:0" "54:30" "76:42" "ringed_seal_floe_1"
+
+# The buoy and tag predate the source-sheet pipeline. Scale their approved
+# transparent masters by the same screen ratio so every runtime bitmap keeps a
+# consistent physical size on 416/454/466 px AMOLED displays.
+scale_existing_amoled "buoy" "76:62"
+scale_existing_amoled "tag" "43:70"
