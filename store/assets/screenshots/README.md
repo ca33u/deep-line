@@ -1,17 +1,18 @@
 # Store screenshots
 
-Use the files from `ready/` for the Connect IQ Store. They are unretouched captures of official Garmin Simulator builds, cropped to remove Simulator chrome and converted to sRGB.
+Upload every JPEG from `TO-UPLOAD/` to the Connect IQ Store. This folder contains
+only the five current screenshots: all are cropped official Garmin Simulator
+captures, converted to sRGB and compressed below the Store's 150 KB per-image
+limit.
 
 Recommended order:
 
-1. `01-title-amoled.png` — title screen.
-2. `02-campaign-amoled.png` — sea and depth selection.
-3. `03-gameplay-amoled.png` — equalization timing during a dive.
-4. `06-gameplay-mip.png` — gameplay on a fēnix MIP display.
+1. `01-title-amoled.jpg` — title screen on fēnix 9 Pro 47 mm AMOLED.
+2. `02-campaign-amoled.jpg` — sea and depth selection on fēnix 9 Pro.
+3. `03-gameplay-amoled.jpg` — equalization timing on fēnix 9 Pro.
+4. `04-deep-gameplay-amoled.jpg` — deeper Sea of Cortez gameplay at 6.2 m,
+   with the turtle encounter and the 10 m tag visible.
+5. `05-gameplay-mip.jpg` — gameplay on a fēnix MIP display.
 
-Optional:
-
-- `04-safe-turn-amoled.png` — a safe early-turn result; useful for explaining failure states, but not recommended among the first three marketing screenshots.
-- `05-title-mip.png` — title screen on a fēnix MIP display.
-
-The `source/` directory keeps the full Simulator captures. Do not upload those directly: they include window chrome and the Simulator cursor.
+Full captures, PNG masters and optional rejected screenshots live in
+`../../../art/source/store-screenshots/`, outside this upload-facing directory.

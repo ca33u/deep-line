@@ -59,9 +59,12 @@ module Campaign {
     }
 
     function cueDeadline(level as Lang.Number) as Lang.Number {
-        if (level >= 12) { return 3; }
-        if (level >= 6) { return 4; }
-        return 5;
+        // One extra 120 ms tick compensates for physical button and MIP refresh
+        // latency. This expands the total response window by roughly 17–25%
+        // without changing travel speed or animation timing.
+        if (level >= 12) { return 4; }
+        if (level >= 6) { return 5; }
+        return 6;
     }
 
     // The timing ring lands on the target band exactly at the last perfect tick,
@@ -71,7 +74,10 @@ module Campaign {
     }
 
     function perfectEnd(level as Lang.Number) as Lang.Number {
-        return territory(level) >= 3 ? 2 : 3;
+        // The model scores in whole 120 ms ticks. A single late-grace tick is the
+        // smallest possible expansion and is preferable to moving the visual
+        // target earlier than the player sees it on real hardware.
+        return territory(level) >= 3 ? 3 : 4;
     }
 
     // How many missed cues a dive survives before the safe early turn. Ignoring

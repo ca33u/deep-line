@@ -43,6 +43,16 @@ func write(_ image: NSBitmapImageRep, name: String) throws {
     try data.write(to: output.appendingPathComponent(name))
 }
 
+func writeJpeg(_ image: NSBitmapImageRep, name: String,
+               compression: CGFloat = 0.88) throws {
+    guard let data = image.representation(using: .jpeg, properties: [
+        .compressionFactor: compression
+    ]) else {
+        fatalError("Unable to encode \(name)")
+    }
+    try data.write(to: output.appendingPathComponent(name))
+}
+
 func path(_ points: [NSPoint], close: Bool = false) -> NSBezierPath {
     let result = NSBezierPath()
     guard let first = points.first else { return result }
@@ -174,6 +184,64 @@ func drawImage(_ image: NSImage, in rect: NSRect) {
         respectFlipped: true, hints: [.interpolation: NSImageInterpolation.high])
 }
 
+func drawStoreCover() throws -> NSBitmapImageRep {
+    let source = loadImage("art/source/store-icon-diver-face.png")
+    return try bitmap(width: 500, height: 500) { canvas in
+        drawImage(source, in: NSRect(origin: .zero, size: canvas))
+    }
+}
+
+func quantizeGarmin64(_ source: NSBitmapImageRep) -> NSBitmapImageRep {
+    let width = source.pixelsWide
+    let height = source.pixelsHigh
+    guard let result = NSBitmapImageRep(bitmapDataPlanes: nil,
+        pixelsWide: width, pixelsHigh: height, bitsPerSample: 8,
+        samplesPerPixel: 3, hasAlpha: false, isPlanar: false,
+        colorSpaceName: .deviceRGB, bytesPerRow: 0, bitsPerPixel: 0) else {
+        fatalError("Unable to create 64-color icon")
+    }
+
+    let bayer4 = [
+         0,  8,  2, 10,
+        12,  4, 14,  6,
+         3, 11,  1,  9,
+        15,  7, 13,  5
+    ]
+
+    for y in 0..<height {
+        for x in 0..<width {
+            guard let raw = source.colorAt(x: x, y: y),
+                  let pixel = raw.usingColorSpace(.deviceRGB) else {
+                continue
+            }
+            let threshold = (CGFloat(bayer4[(y % 4) * 4 + (x % 4)]) + 0.5) / 16
+            let channels = [pixel.redComponent, pixel.greenComponent,
+                pixel.blueComponent]
+            var quantized = [CGFloat]()
+            for channel in channels {
+                let scaledChannel = channel * 3
+                let lower = Int(scaledChannel)
+                let fraction = scaledChannel - CGFloat(lower)
+                var level = fraction > threshold ? lower + 1 : lower
+                if (level > 3) { level = 3 }
+                quantized.append(CGFloat(level) / 3)
+            }
+            result.setColor(NSColor(deviceRed: quantized[0],
+                green: quantized[1], blue: quantized[2], alpha: 1),
+                atX: x, y: y)
+        }
+    }
+    return result
+}
+
+func drawDeviceFaceIcon(size: Int, mip: Bool) throws -> NSBitmapImageRep {
+    let source = loadImage("art/source/store-icon-diver-face.png")
+    let icon = try bitmap(width: size, height: size) { canvas in
+        drawImage(source, in: NSRect(origin: .zero, size: canvas))
+    }
+    return mip ? quantizeGarmin64(icon) : icon
+}
+
 func drawText(_ value: String, rect: NSRect, font: NSFont,
               color textColor: NSColor, alignment: NSTextAlignment = .left,
               kern: CGFloat = 0) {
@@ -218,7 +286,9 @@ func drawHero(filename: String) throws {
     try write(hero, name: filename)
 }
 
-try write(drawIcon(size: 500, mip: false), name: "app-icon-500.png")
-try write(drawIcon(size: 128, mip: true), name: "device-icon-mip-128.png")
-try write(drawIcon(size: 128, mip: false), name: "device-icon-amoled-128.png")
+try writeJpeg(drawStoreCover(), name: "app-icon-500.jpg")
+try write(drawDeviceFaceIcon(size: 128, mip: true),
+    name: "device-icon-mip-128.png")
+try write(drawDeviceFaceIcon(size: 128, mip: false),
+    name: "device-icon-amoled-128.png")
 try drawHero(filename: "hero-1440x720-en.png")

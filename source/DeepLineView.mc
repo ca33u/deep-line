@@ -6,7 +6,9 @@ using Toybox.Timer;
 using Toybox.WatchUi;
 
 class DeepLineView extends WatchUi.View {
-    const TIMER_PERIOD_MS = 125;
+    // Slightly faster than the first hardware-tuned pass: this trims the
+    // expanded timing windows by about 4% without removing a whole grace tick.
+    const TIMER_PERIOD_MS = 120;
     const REFERENCE_WIDTH = 280;
     const HERO_TRAVEL_TICKS = 64;
 
@@ -340,10 +342,10 @@ class DeepLineView extends WatchUi.View {
         if (!isAmoled()) {
             // A five-color depth ladder turned into huge horizontal bands during
             // gameplay. The pre-rendered ordered-dither background uses the same
-            // native MIP palette, but blends those colors spatially and stays
-            // smooth while the world line scrolls over it.
-            drawMipOcean(dc, width, height,
-                staticScreen ? 0 : _model.getDepthCm());
+            // native MIP palette and blends those colors spatially. Keep its
+            // Bayer phase fixed in screen coordinates: scrolling the dither by
+            // one pixel changes almost every pixel and flashes on real MIP.
+            drawMipOcean(dc, width, height);
         } else {
             var stripCount = 20;
             for (var row = 0; row < stripCount; row += 1) {
@@ -385,15 +387,12 @@ class DeepLineView extends WatchUi.View {
     }
 
     private function drawMipOcean(dc as Graphics.Dc, width as Lang.Number,
-            height as Lang.Number, depthCm as Lang.Number) as Void {
+            height as Lang.Number) as Void {
         var background = mipOceanBackground();
         dc.setColor(biomeMipAbyss(), Graphics.COLOR_TRANSPARENT);
         dc.fillRectangle(0, 0, width, height);
-        var depthOffset = depthCm * height /
-            Campaign.depthCm(Campaign.LEVEL_COUNT - 1);
-        if (depthOffset > height) { depthOffset = height; }
         dc.drawBitmap((width - background.getWidth()) / 2,
-            (height - background.getHeight()) / 2 - depthOffset, background);
+            (height - background.getHeight()) / 2, background);
     }
 
     private function amoledOceanColor(depthCm as Lang.Number) as Lang.Number {
@@ -598,11 +597,7 @@ class DeepLineView extends WatchUi.View {
         var actionLabel = _model.isSelectedUnlocked() ? "DIVE" : "LOCKED";
         var actionColor = _model.isSelectedUnlocked() ? 0xFFFFFF : COLOR_DIM;
         var actionY = height * 86 / 100;
-        if (_model.isSelectedUnlocked()) {
-            drawPlayAction(dc, cx, actionY, actionLabel, actionColor);
-        } else {
-            drawPlainAction(dc, cx, actionY, actionLabel, actionColor);
-        }
+        drawPlainAction(dc, cx, actionY, actionLabel, actionColor);
     }
 
     private function drawTerritoryPreview(dc as Graphics.Dc,

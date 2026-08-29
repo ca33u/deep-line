@@ -23,6 +23,8 @@ OpenAI's built-in image generation on 2026-08-27.
   into the composition, and remain on the floes already included in their PNGs
   when a dive begins. No second code-drawn
   floe is placed underneath them.
+- `store-icon-diver-face.png`: full-resolution source for the square Store cover
+  image. The close underwater portrait remains readable at small listing sizes.
 
 The obsolete all-in-one `freediver-sprite-sheet.png` was removed after the
 separate animation strips fully replaced it.

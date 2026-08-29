@@ -447,6 +447,16 @@ function testCampaignScalesDeepDivePressure(logger as Test.Logger) as Lang.Boole
 }
 
 (:test)
+function testHardwareTimingWindowsIncludeLateGrace(logger as Test.Logger) as Lang.Boolean {
+    return Campaign.perfectStart(0) == 2 &&
+        Campaign.perfectEnd(0) == 4 &&
+        Campaign.perfectEnd(9) == 3 &&
+        Campaign.cueDeadline(0) == 6 &&
+        Campaign.cueDeadline(6) == 5 &&
+        Campaign.cueDeadline(12) == 4;
+}
+
+(:test)
 function testSuccessfulCampaignDiveAwardsAndUnlocks(logger as Test.Logger) as Lang.Boolean {
     var model = freshModel();
     var selected = model.getSelectedLevel();

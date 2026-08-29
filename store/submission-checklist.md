@@ -9,20 +9,21 @@
 - [x] Store icon specification: 500×500 sRGB
 - [x] On-device icon specification: 128×128 MIP and AMOLED
 - [x] Hero specification: 1440×720, localized variants
-- [x] Strict builds for both manifest devices
-- [x] Model tests: 26/26
+- [x] Strict builds for all 14 manifest product IDs (16 exported device variants)
+- [x] Model tests: 27/27
 - [x] Simulator smoke on 260, 280, 390 and 454 px round displays
 - [x] No permissions in manifest
-- [x] Signed release-candidate `.iq` exported for both manifest products
+- [x] Re-export signed release-candidate `.iq` for the expanded device matrix
 
 ## Before submission
 
 - [ ] Finish the 10-run gameplay gate on a real fēnix 7X Pro
 - [ ] Confirm touch input on a real vívoactive 6 or equivalent device
-- [x] Keep v0.1 limited to the two manifest products
-- [ ] Review every screenshot after the final hardware fixes
+- [x] Simulator smoke the added fēnix 8 and fēnix 9 screen families
+- [x] Review fresh fēnix 9 Pro AMOLED title, campaign, shallow timing and deep
+  Sea of Cortez gameplay screenshots
 - [x] Push `PRIVACY.md` so its public GitHub URL resolves
-- [ ] Re-export the final `.iq` with the same developer key after any hardware fixes
+- [x] Re-export the final `.iq` with the same developer key after hardware fixes
 - [ ] Upload the `.iq`, icon, hero, screenshots and localized copy
 - [ ] Preview the unpublished listing on both desktop and mobile
 - [ ] Submit for Garmin review
