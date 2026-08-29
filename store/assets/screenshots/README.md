@@ -1,7 +1,7 @@
 # Store screenshots
 
 Upload every JPEG from `TO-UPLOAD/` to the Connect IQ Store. This folder contains
-only the five current screenshots: all are cropped official Garmin Simulator
+only the four current screenshots: all are cropped official Garmin Simulator
 captures, converted to sRGB and compressed below the Store's 150 KB per-image
 limit.
 
@@ -13,7 +13,5 @@ Recommended order:
    encounter and the native 466 px diver sprites visible.
 4. `04-deep-gameplay-amoled.jpg` — deeper Sea of Cortez gameplay at 7.8 m,
    with the 10 m tag visible.
-5. `05-gameplay-mip.jpg` — gameplay on a fēnix MIP display.
-
 Full captures, PNG masters and optional rejected screenshots live in
 `../../../art/source/store-screenshots/`, outside this upload-facing directory.
