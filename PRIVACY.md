@@ -1,18 +1,45 @@
 # Deep Line Privacy Policy
 
-Effective date: August 28, 2026
+Effective for the KiezelPay-enabled update prepared September 25, 2026.
+Earlier free versions do not include the payment integration described below.
 
-Deep Line does not collect, transmit, sell or share personal data.
+## Gameplay and local storage
 
-The app works entirely offline and requests no Connect IQ permissions. It does
-not use location, health, activity, sensor, contact, account or advertising data.
-It does not connect to a server and does not include analytics or third-party
-tracking libraries.
+Campaign progress, stars and best scores are stored locally on the Garmin device.
+Deep Line does not use health, location, activity, contacts, advertising or analytics
+services. The first three levels can be played without a payment or network
+connection. Removing the app or clearing its storage removes local progress and
+may require restoration of a purchase.
 
-Campaign progress, stars and best scores are stored only in the app's local
-storage on the Garmin device. Removing the app or clearing its local application
-data removes that information according to the behavior of the Garmin device and
-Connect IQ platform.
+## Optional full-campaign purchase
 
-Questions and support requests can be opened at:
-https://github.com/ca33u/deep-line/issues
+Deep Line uses KiezelPay to sell and restore access to the full campaign. The
+Connect IQ Communications permission allows the game to contact KiezelPay through
+your paired phone. When you start a purchase or restore, the library sends the
+KiezelPay product ID, an account/device token, the Garmin device part number,
+library version, request timestamp and purchase-mode flags to
+https://api.kiezelpay.com/api/v2/status. The library uses the device identifier
+when available, or a locally generated token. It stores the license state,
+purchase code, token and license-check timestamps on the watch.
+
+After a purchase flow has been started, the library can check its status on
+subsequent launches and retry while the app runs. Licensed access is cached for
+offline play; a later successful server response can update or revoke that
+license. Gameplay progress and scores are not sent to KiezelPay.
+
+Checkout occurs on KiezelPay's website. Deep Line does not receive payment-card
+details. Information entered at checkout is handled by KiezelPay and its payment
+providers under their terms and privacy policies. Purchase restoration may use
+the email address supplied at checkout: https://kzl.io/unlock.
+
+## Prior free players
+
+On first launch of this update, players with an existing saved score or unlocked
+campaign progress retain full access locally. Those players do not need a
+KiezelPay license. That local entitlement may be lost if app storage is deleted.
+
+## Support
+
+Email: deepline@addicted.sh
+Technical issues: https://github.com/ca33u/deep-line/issues
+Please do not post payment details, purchase codes or personal data publicly.
